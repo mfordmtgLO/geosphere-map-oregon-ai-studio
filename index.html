@@ -65,6 +65,49 @@
         .price-marker div {
             pointer-events: auto;
         }
+        /* Fullscreen Map Styles (Inline and Browser API) */
+        #map.map-inline-fullscreen {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 99999 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        body.is-map-fullscreen {
+            overflow: hidden !important;
+        }
+        body.is-map-fullscreen header,
+        body.is-map-fullscreen #sidebarPanel,
+        body.is-map-fullscreen #crmDrawer,
+        body.is-map-fullscreen #mobileFloatingFilterBtn {
+            display: none !important;
+        }
+        .leaflet-control-fullscreen a.map-fullscreen-button {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 32px !important;
+            height: 32px !important;
+            line-height: 32px !important;
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+            text-decoration: none !important;
+            cursor: pointer !important;
+        }
+        .leaflet-control-fullscreen a.map-fullscreen-button:hover {
+            background-color: #f8fafc !important;
+            color: #4f46e5 !important;
+        }
+        .leaflet-control-fullscreen a.map-fullscreen-button svg {
+            width: 16px;
+            height: 16px;
+            display: block;
+        }
     </style>
 </head>
 <body class="h-full flex flex-col overflow-hidden font-sans antialiased">
@@ -701,6 +744,74 @@ function setCachedResults(cacheKey, data) {
         L.control.zoom({ position: 'topright' }).addTo(map);
 
         const fullscreenControl = L.control({ position: 'topright' });
+        const enterSvg = `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>`;
+        const exitSvg = `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6m0 0v6m0-6L3 21m17-7h-6m0 0v6m0-6l7 7M10 10H4m6 0V4m0 6L3 3m10 7h6m-6 0V4m0 6l7-7"/></svg>`;
+
+        function isCurrentlyFullscreen() {
+            const mapContainer = document.getElementById('map');
+            return Boolean(
+                document.fullscreenElement ||
+                document.webkitFullscreenElement ||
+                document.mozFullScreenElement ||
+                document.msFullscreenElement ||
+                mapContainer?.classList.contains('map-inline-fullscreen')
+            );
+        }
+
+        function setMapFullscreenState(fullscreen) {
+            const mapContainer = document.getElementById('map');
+            const button = document.querySelector('.map-fullscreen-button');
+            if (!mapContainer) return;
+
+            if (fullscreen) {
+                mapContainer.classList.add('map-inline-fullscreen');
+                document.body.classList.add('is-map-fullscreen');
+                if (button) {
+                    button.innerHTML = exitSvg;
+                    button.title = 'Exit fullscreen map (Esc)';
+                    button.setAttribute('aria-label', button.title);
+                }
+                const requestFs = mapContainer.requestFullscreen ||
+                                  mapContainer.webkitRequestFullscreen ||
+                                  mapContainer.mozRequestFullScreen ||
+                                  mapContainer.msRequestFullscreen;
+                if (requestFs && !document.fullscreenElement) {
+                    try {
+                        const promise = requestFs.call(mapContainer);
+                        if (promise && typeof promise.catch === 'function') {
+                            promise.catch(() => {});
+                        }
+                    } catch (e) {}
+                }
+            } else {
+                mapContainer.classList.remove('map-inline-fullscreen');
+                document.body.classList.remove('is-map-fullscreen');
+                if (button) {
+                    button.innerHTML = enterSvg;
+                    button.title = 'Enter fullscreen map';
+                    button.setAttribute('aria-label', button.title);
+                }
+                const exitFs = document.exitFullscreen ||
+                               document.webkitExitFullscreen ||
+                               document.mozCancelFullScreen ||
+                               document.msExitFullscreen;
+                if (exitFs && (document.fullscreenElement || document.webkitFullscreenElement)) {
+                    try {
+                        const promise = exitFs.call(document);
+                        if (promise && typeof promise.catch === 'function') {
+                            promise.catch(() => {});
+                        }
+                    } catch (e) {}
+                }
+            }
+
+            if (map) {
+                map.invalidateSize();
+                setTimeout(() => map.invalidateSize(), 50);
+                setTimeout(() => map.invalidateSize(), 200);
+            }
+        }
+
         fullscreenControl.onAdd = function() {
             const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control-fullscreen');
             const button = L.DomUtil.create('a', 'map-fullscreen-button', container);
@@ -708,58 +819,40 @@ function setCachedResults(cacheKey, data) {
             button.setAttribute('role', 'button');
             button.setAttribute('aria-label', 'Enter fullscreen map');
             button.title = 'Enter fullscreen map';
-            button.textContent = '⛶';
+            button.innerHTML = enterSvg;
             L.DomEvent.disableClickPropagation(container);
-            const syncFullscreenButton = function() {
-                const mapContainer = document.getElementById('map');
-                const isFullscreen = document.fullscreenElement === mapContainer || mapContainer?.classList.contains('map-inline-fullscreen');
-                button.textContent = isFullscreen ? '×' : '⛶';
-                button.title = isFullscreen ? 'Exit fullscreen map' : 'Enter fullscreen map';
-                button.setAttribute('aria-label', button.title);
-                window.setTimeout(() => map.invalidateSize(), 0);
-            };
+            L.DomEvent.disableScrollPropagation(container);
+
             L.DomEvent.on(button, 'click', function(event) {
                 L.DomEvent.preventDefault(event);
-                const mapContainer = document.getElementById('map');
-                if (!mapContainer) return;
-                const inlineActive = mapContainer.classList.contains('map-inline-fullscreen');
-                if (inlineActive) {
-                    mapContainer.classList.remove('map-inline-fullscreen');
-                    syncFullscreenButton();
-                } else {
-                    mapContainer.classList.add('map-inline-fullscreen');
-                    syncFullscreenButton();
-                }
+                L.DomEvent.stopPropagation(event);
+                setMapFullscreenState(!isCurrentlyFullscreen());
             });
             return container;
         };
         fullscreenControl.addTo(map);
 
         document.addEventListener('keydown', function(event) {
-            const mapContainer = document.getElementById('map');
-            if (event.key === 'Escape' && mapContainer?.classList.contains('map-inline-fullscreen')) {
-                mapContainer.classList.remove('map-inline-fullscreen');
-                const button = document.querySelector('.map-fullscreen-button');
-                if (button) {
-                    button.textContent = '⛶';
-                    button.title = 'Enter fullscreen map';
-                    button.setAttribute('aria-label', button.title);
-                }
-                window.setTimeout(() => map.invalidateSize(), 0);
+            if (event.key === 'Escape' && isCurrentlyFullscreen()) {
+                setMapFullscreenState(false);
             }
         });
 
-        document.addEventListener('fullscreenchange', function() {
-            const button = document.querySelector('.map-fullscreen-button');
-            const mapContainer = document.getElementById('map');
-            const isMapFullscreen = document.fullscreenElement === mapContainer || mapContainer?.classList.contains('map-inline-fullscreen');
-            if (button) {
-                button.textContent = isMapFullscreen ? '×' : '⛶';
-                button.title = isMapFullscreen ? 'Exit fullscreen map' : 'Enter fullscreen map';
-                button.setAttribute('aria-label', button.title);
+        const onFsChange = function() {
+            const hasFs = Boolean(
+                document.fullscreenElement ||
+                document.webkitFullscreenElement ||
+                document.mozFullScreenElement ||
+                document.msFullscreenElement
+            );
+            if (!hasFs && document.getElementById('map')?.classList.contains('map-inline-fullscreen')) {
+                setMapFullscreenState(false);
             }
-            window.setTimeout(() => map.invalidateSize(), 0);
-        });
+        };
+        document.addEventListener('fullscreenchange', onFsChange);
+        document.addEventListener('webkitfullscreenchange', onFsChange);
+        document.addEventListener('mozfullscreenchange', onFsChange);
+        document.addEventListener('MSFullscreenChange', onFsChange);
 
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
