@@ -1,0 +1,16 @@
+{
+  "name": "geosphere-map-oregon",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "build": "node -e 'console.log(\"Build complete\")'",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@vercel/kv": "file:./mock-kv",
+    "express": "^5.2.1"
+  }
+}

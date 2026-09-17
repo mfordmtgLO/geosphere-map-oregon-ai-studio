@@ -1,0 +1,41 @@
+# Project TODO
+
+- [x] Add a dedicated vertical scrollbar for the GeoSphere sidebar content
+- [x] Add a map-only fullscreen control with an accessible exit-fullscreen state
+- [x] Verify desktop and mobile map layout behavior before deployment
+- [x] Make GeoSphere fullscreen visually cover the sidebar and Live CRM dashboard until the user exits
+- [x] Revise expanded map mode to retain full left-sidebar access and support Escape-key exit
+- [x] Specify the 6th as the GeoSphere billing-cycle date in the API counter guidance
+- [x] Fix saved-listing LMI, USDA RD, and combined overlay filters so matching in-polygon listings remain visible on the map
+- [x] Reverse USDA RD eligibility so listings outside shaded ineligible polygons are classified and displayed as USDA eligible
+- [x] Add the supplied official 2026 Oregon FirstHome targeted and non-targeted purchase-price limits as a versioned local data source
+- [x] Apply targeted and non-targeted FirstHome maximum-price checks alongside existing LMI eligibility without changing saved-listing sync field names
+- [x] Add sidebar controls and listing/map detail context for FirstHome limits, including adjustable review thresholds
+- [x] Add regression coverage, verify the existing dashboard sync contract, and publish the GeoSphere update
+- [x] Define Lakeview National qualifying-listing rules against Rentcast sale-listing data and preserve them in the saved-list database
+- [x] Add a Lakeview National saved-list overlay with tags, pins, and full property/listing-agent popup details
+- [x] Add Lakeview National selection to the saved-list export flow, validate the feature, and publish the GeoSphere update
+- [x] Ground Lakeview National screening criteria, limitations, and map/export disclosure copy in the official product guidelines
+- [x] Implement Option A only: active Oregon sale listings with usable map data, clearly labeled for Lakeview National review rather than approved or qualified
+- [x] Verify the current official FHFA conventional county-loan-limit source and apply it only as an annual-adjustable Lakeview National listing-price review cap
+- [x] Add an Oregon maximum-price slider, map/popup cap context, and Lakeview National export metadata without implying loan eligibility or a maximum loan amount
+- [x] Limit the Lakeview National review screen to for-sale, one-to-four-unit stick-built residential listings and exclude all manufactured, mobile, and land-lease homes
+- [x] Use separate annual-adjustable Oregon listing-price proxy caps for one-, two-, three-, and four-unit Lakeview review listings
+- [x] Verify and store 2026 FHFA county-specific Washington conforming limits for the Lakeview National review overlay
+- [x] Add Washington county-aware Lakeview review controls, map/popup cap context, saved-list metadata, export treatment, validation, and publication
+- [x] Refactor Oregon program overlays into a reusable multi-state state, county, and program review framework
+- [x] Catalog authoritative current overlay, geographic eligibility, and annual price-limit data for Oregon, Washington, Idaho, and California
+- [x] Add only verified Washington, Idaho, and California program review overlays, local annual controls, popup context, and saved-list export treatment
+- [x] Add a CalHFA MyHome California property-context review overlay using only its published single-unit, condominium/PUD, and manufactured-housing rules, with no invented sales-price cap
+- [x] Keep Idaho Housing state-program price filtering disabled until its current official county sales-price chart is captured and versioned
+- [x] Document that Idaho MRB/Tax-Exempt county sales-price limits require a current authorized Lender Connection matrix or internal bulletin and must never be derived from the statutory methodology alone
+- [x] Extract the effective-date, county, targeted-area, and sales-price fields from the authorized IHFA 2026-6 bulletin and version them as Idaho MRB review data
+- [x] Add an Idaho MRB/Tax-Exempt saved-list review overlay, map/popup context, and export metadata without screening borrower, income, or approval conditions
+- [x] Add a visible multi-state source-status and annual-refresh guide for FHFA, Lakeview, FirstHome, CalHFA MyHome, and Idaho MRB saved-list review adapters
+- [x] Add a reusable FHFA 2026 county-and-unit listing-price review overlay across Oregon, Washington, Idaho, and California without implying a conforming loan approval
+- [x] Document multi-state review-only disclosures, data-source provenance, annual update governance, validation coverage, and future program-adapter requirements
+- [x] Create and present an evidence-based slide deck summarizing the multi-state GeoSphere review framework and county loan-limit logic
+- [x] Create and present a separate evidence-based slide deck for the OHCS Flex Lending FirstHome LMI, geography, purchase-price, filter-schema, and review-only framework
+- [x] Create a comprehensive GeoSphere multi-state filter-schema testing checklist for LMI tracts, property types, county price and loan-limit review logic, saved-list/export integrity, and safeguards
+- [x] Integrate the source-backed CalHFA MyHome and Idaho Housing Tax-Exempt/MRB review adapters into the live GeoSphere filter configuration engine with review-only disclosures
+- [x] Integrate the source-backed OHCS Flex Lending FirstHome LMI, targeted-area, and dated maximum purchase-price review rules into the live GeoSphere program-review configuration engine

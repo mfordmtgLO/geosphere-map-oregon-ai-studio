@@ -1,0 +1,10 @@
+{
+  "name": "GeoSphere Engine",
+  "description": "Demographic census layer integration, enterprise spatial analytics platform, and CRM for property listings",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
