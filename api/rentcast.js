@@ -133,7 +133,13 @@ export default async function handler(req, res) {
                 }
             });
 
-            if (!response.ok) break;
+            if (!response.ok) {
+                if (offset === 0) {
+                    const errorText = await response.text().catch(() => 'Unknown error');
+                    return res.status(response.status).json({ error: `Rentcast API returned ${response.status}: ${errorText}` });
+                }
+                break;
+            }
 
             apiPullsUsedThisSearch++;
             const data = await response.json();
