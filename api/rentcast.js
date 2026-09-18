@@ -205,15 +205,18 @@ export default async function handler(req, res) {
             maxPulls: MAX_MONTHLY_PULLS
         };
 
-        // Store snapshot in Upstash KV
-        try {
-            await kv.set(cacheKey, result, { ex: CACHE_TTL_SECONDS });
-            console.log('KV stored snapshot:', cacheKey);
-        } catch (e) {
-            console.warn('KV write failed:', e.message);
+        // Store snapshot in Upstash KV only if it has listings
+        if (overlaySets.all.length > 0) {
+            try {
+                await kv.set(cacheKey, result, { ex: CACHE_TTL_SECONDS });
+                console.log('KV stored snapshot:', cacheKey);
+            } catch (e) {
+                console.warn('KV write failed:', e.message);
+            }
         }
 
         res.setHeader('X-Cache', 'LIVE-REFRESH');
+        res.setHeader('Cache-Control', 'no-store, max-age=0');
         res.setHeader('Content-Type', 'application/json');
         return res.status(200).json({
             ...result,

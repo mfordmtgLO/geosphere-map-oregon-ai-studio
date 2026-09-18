@@ -421,8 +421,11 @@
                         </span>
                         <h3 class="text-sm font-bold tracking-wide uppercase text-slate-200">Live CRM Administrative Dashboard / Automated Task Logs</h3>
                     </div>
-                    <div class="text-xs text-slate-500">
-                        Total Enrolled Leads: <span id="leadCount" class="font-bold text-indigo-400">2</span>
+                    <div class="flex items-center space-x-3 text-xs text-slate-500">
+                        <button onclick="exportCRM('csv')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-slate-200 transition" title="Export current CRM table leads to CSV">Export Leads (CSV)</button>
+                        <button onclick="exportCRM('json')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-slate-200 transition" title="Export current CRM table leads to JSON">Export Leads (JSON)</button>
+                        <button onclick="openSavedListingsExportModal()" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-semibold shadow transition" title="Export Rentcast api pulls">Export Saved Listings</button>
+                        <span class="ml-2 border-l border-slate-700 pl-3">Total Enrolled Leads: <span id="leadCount" class="font-bold text-indigo-400">2</span></span>
                     </div>
                 </div>
                 <div class="flex-1 overflow-auto">
@@ -1140,7 +1143,7 @@ const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${e
         try {
             const queryString = Object.entries(searchParams)
                 .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
-                .join('&');
+                .join('&') + `&_t=${Date.now()}`;
             
             tractField.value = "Searching listings...";
             const response = await fetch(`/api/rentcast?${queryString}`);
@@ -1990,7 +1993,212 @@ async function loadFirstHomeLimits() {
     function escapeHtml(str) {
         return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
+
+    // --- 11. EXPORT FUNCTIONALITY ---
+    function downloadFile(content, fileName, mimeType) {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function exportCRM(format) {
+        const leads = appState.leads || [];
+        if (format === 'json') {
+            downloadFile(JSON.stringify(leads, null, 2), 'crm_leads.json', 'application/json');
+        } else {
+            const headers = ['Name', 'Email', 'Coordinates', 'Tract GeoID', 'Status', 'Tasks'];
+            let csvContent = headers.join(',') + '\n';
+            leads.forEach(lead => {
+                const row = [
+                    `"${(lead.name || '').replace(/"/g, '""')}"`,
+                    `"${(lead.email || '').replace(/"/g, '""')}"`,
+                    `"${(lead.coords || '').replace(/"/g, '""')}"`,
+                    `"${(lead.tract || '').replace(/"/g, '""')}"`,
+                    `"${(lead.status || '').replace(/"/g, '""')}"`,
+                    `"${((lead.tasks || []).join('; ')).replace(/"/g, '""')}"`
+                ];
+                csvContent += row.join(',') + '\n';
+            });
+            downloadFile(csvContent, 'crm_leads.csv', 'text/csv');
+        }
+    }
+
+    function openSavedListingsExportModal() {
+        const container = document.getElementById('exportLocationsContainer');
+        container.innerHTML = '';
+        
+        if (!sharedSavedPulls || sharedSavedPulls.length === 0) {
+            container.innerHTML = '<p class="text-sm text-slate-400 italic">No saved pulls available to export.</p>';
+        } else {
+            sharedSavedPulls.forEach((pull, index) => {
+                const div = document.createElement('div');
+                div.className = "flex items-center px-2 py-1.5 hover:bg-slate-800 rounded transition cursor-pointer";
+                div.onclick = function(e) {
+                    if (e.target.tagName !== 'INPUT') {
+                        const cb = document.getElementById('export_cb_' + index);
+                        cb.checked = !cb.checked;
+                        updateSelectAllState();
+                    }
+                };
+                div.innerHTML = `
+                    <input type="checkbox" id="export_cb_${index}" value="${index}" class="export-pull-cb mr-3 w-4 h-4 text-indigo-500 rounded focus:ring-indigo-500 bg-slate-700 border-slate-600" onchange="updateSelectAllState()" />
+                    <label for="export_cb_${index}" class="text-sm text-slate-300 flex-1 cursor-pointer pointer-events-none">
+                        ${escapeHtml(pull.area?.label || pull.cacheKey || 'Unknown Area')} 
+                        <span class="text-xs text-slate-500 ml-2">(${pull.count} properties)</span>
+                    </label>
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        document.getElementById('selectAllExportsCheckbox').checked = false;
+        document.getElementById('savedListingsExportModal').classList.remove('hidden');
+    }
+
+    function closeSavedListingsExportModal() {
+        document.getElementById('savedListingsExportModal').classList.add('hidden');
+    }
+
+    function toggleSelectAllExports(e) {
+        if (e && e.target.tagName === 'INPUT') return; 
+        const mainCb = document.getElementById('selectAllExportsCheckbox');
+        if (e && e.target.tagName !== 'INPUT') {
+            mainCb.checked = !mainCb.checked;
+        }
+        const cbs = document.querySelectorAll('.export-pull-cb');
+        cbs.forEach(cb => cb.checked = mainCb.checked);
+    }
+
+    window.updateSelectAllState = function() {
+        const cbs = Array.from(document.querySelectorAll('.export-pull-cb'));
+        const mainCb = document.getElementById('selectAllExportsCheckbox');
+        if (cbs.length > 0) {
+            mainCb.checked = cbs.every(cb => cb.checked);
+        }
+    };
+
+    function executeSavedListingsExport(format) {
+        const cbs = document.querySelectorAll('.export-pull-cb:checked');
+        if (cbs.length === 0) {
+            alert("Please select at least one location to export.");
+            return;
+        }
+
+        let allListingsToExport = [];
+        
+        cbs.forEach(cb => {
+            const pullIndex = parseInt(cb.value, 10);
+            const pull = sharedSavedPulls[pullIndex];
+            if (pull && pull.overlaySets && pull.overlaySets.all) {
+                const properties = pull.overlaySets.all.map(p => ({
+                    ...p,
+                    _exportCityName: p.city ? p.city.trim() : (pull.area?.label || 'Unknown')
+                }));
+                allListingsToExport = allListingsToExport.concat(properties);
+            }
+        });
+
+        // Sort alphabetically A-Z by city name, then numerically by price (lowest to highest)
+        allListingsToExport.sort((a, b) => {
+            const cityA = (a._exportCityName || '').toLowerCase();
+            const cityB = (b._exportCityName || '').toLowerCase();
+            if (cityA < cityB) return -1;
+            if (cityA > cityB) return 1;
+            
+            const priceA = a.price || 0;
+            const priceB = b.price || 0;
+            return priceA - priceB;
+        });
+
+        if (format === 'json') {
+            const jsonOutput = allListingsToExport.map(item => {
+                const copy = { ...item };
+                delete copy._exportCityName;
+                return copy;
+            });
+            downloadFile(JSON.stringify(jsonOutput, null, 2), 'saved_listings.json', 'application/json');
+        } else {
+            const headers = [
+                'City', 'Address', 'State', 'Zip', 'Price', 'Property Type', 
+                'SqFt', 'Bedrooms', 'Bathrooms', 'Status', 'Days on Market', 'MLS ID',
+                'Agent Name', 'Agent Phone', 'Agent Email', 'Agent Website', 'Brokerage'
+            ];
+            let csvContent = headers.join(',') + '\n';
+            
+            allListingsToExport.forEach(p => {
+                const agent = p.listingAgent || {};
+                
+                let emailOut = agent.email || '';
+                if (emailOut) {
+                    emailOut = `=HYPERLINK(""mailto:${emailOut}"", ""${emailOut}"")`;
+                }
+                
+                let websiteOut = agent.website || '';
+                if (websiteOut) {
+                    websiteOut = `=HYPERLINK(""${websiteOut}"", ""Agent Website"")`;
+                }
+
+                const row = [
+                    `"${(p.city || '').replace(/"/g, '""')}"`,
+                    `"${(p.addressLine1 || '').replace(/"/g, '""')}"`,
+                    `"${(p.state || '').replace(/"/g, '""')}"`,
+                    `"${(p.zipCode || '').replace(/"/g, '""')}"`,
+                    p.price ? p.price : '',
+                    `"${(p.propertyType || '').replace(/"/g, '""')}"`,
+                    p.squareFootage || '',
+                    p.bedrooms || '',
+                    p.bathrooms || '',
+                    `"${(p.status || '').replace(/"/g, '""')}"`,
+                    p.daysOnMarket || '',
+                    `"${(p.id || '').replace(/"/g, '""')}"`,
+                    `"${(agent.name || '').replace(/"/g, '""')}"`,
+                    `"${(agent.phone || '').replace(/"/g, '""')}"`,
+                    `"${emailOut}"`,
+                    `"${websiteOut}"`,
+                    `"${(agent.brokerage || '').replace(/"/g, '""')}"`
+                ];
+                csvContent += row.join(',') + '\n';
+            });
+            
+            downloadFile(csvContent, 'saved_listings.csv', 'text/csv');
+        }
+        
+        closeSavedListingsExportModal();
+    }
     </script>
+
+    <!-- Saved Listings Export Modal -->
+    <div id="savedListingsExportModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden">
+            <div class="flex justify-between items-center p-4 border-b border-slate-800 bg-slate-800/50">
+                <h2 class="text-lg font-bold text-slate-100">Export Saved API Pulls</h2>
+                <button onclick="closeSavedListingsExportModal()" class="text-slate-400 hover:text-white transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="p-4 flex-1 overflow-y-auto max-h-[50vh]">
+                <p class="text-xs text-slate-400 mb-3">Select the saved locations you want to export. Data is organized alphabetically by city, sorted by price.</p>
+                <div class="flex items-center mb-2 px-2 py-1.5 bg-slate-800/50 rounded cursor-pointer hover:bg-slate-800 transition" onclick="toggleSelectAllExports(event)">
+                    <input type="checkbox" id="selectAllExportsCheckbox" class="mr-3 w-4 h-4 text-indigo-500 rounded focus:ring-indigo-500 bg-slate-700 border-slate-600" />
+                    <label class="text-sm font-semibold text-slate-200 cursor-pointer pointer-events-none">Select All Locations</label>
+                </div>
+                <div id="exportLocationsContainer" class="space-y-1 mt-3 border-t border-slate-800 pt-3">
+                    <!-- Checkboxes populated via JS -->
+                </div>
+            </div>
+            <div class="p-4 border-t border-slate-800 bg-slate-950 flex justify-end space-x-3">
+                <button onclick="closeSavedListingsExportModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-medium transition text-sm">Cancel</button>
+                <button onclick="executeSavedListingsExport('json')" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded font-medium transition text-sm">Export JSON</button>
+                <button onclick="executeSavedListingsExport('csv')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-medium transition shadow-lg text-sm">Export CSV</button>
+            </div>
+        </div>
+    </div>
 
 <!-- ================================================================= -->
 <!-- GEOSPHERE DYNAMIC MAP TOUCH & FTHB / VANTAGE AI SYNC CONNECTOR   -->

@@ -65,7 +65,7 @@ async function readSnapshots(keys) {
     const values = await kv.mget(...chunk);
     values.forEach((value, valueIndex) => {
       const snapshot = normalizeSnapshot(chunk[valueIndex], value);
-      if (snapshot) snapshots.push(snapshot);
+      if (snapshot && snapshot.count > 0) snapshots.push(snapshot);
     });
   }
   return snapshots.sort((a, b) => Number(b.savedAt ?? 0) - Number(a.savedAt ?? 0));
