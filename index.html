@@ -189,10 +189,57 @@
                 <div class="space-y-3">
                     <label class="block text-xs font-medium text-slate-400">US State Target</label>
                     <select id="stateSelect" class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-sm text-slate-200 outline-none transition focus:border-indigo-500">
-                        <option value="41">Oregon (OR)</option>
-                        <option value="53">Washington (WA)</option>
+                        <option value="41" selected>Oregon (OR)</option>
+                        <option value="01">Alabama (AL)</option>
+                        <option value="02">Alaska (AK)</option>
+                        <option value="04">Arizona (AZ)</option>
+                        <option value="05">Arkansas (AR)</option>
                         <option value="06">California (CA)</option>
+                        <option value="08">Colorado (CO)</option>
+                        <option value="09">Connecticut (CT)</option>
+                        <option value="10">Delaware (DE)</option>
+                        <option value="11">District of Columbia (DC)</option>
+                        <option value="12">Florida (FL)</option>
+                        <option value="13">Georgia (GA)</option>
+                        <option value="15">Hawaii (HI)</option>
                         <option value="16">Idaho (ID)</option>
+                        <option value="17">Illinois (IL)</option>
+                        <option value="18">Indiana (IN)</option>
+                        <option value="19">Iowa (IA)</option>
+                        <option value="20">Kansas (KS)</option>
+                        <option value="21">Kentucky (KY)</option>
+                        <option value="22">Louisiana (LA)</option>
+                        <option value="23">Maine (ME)</option>
+                        <option value="24">Maryland (MD)</option>
+                        <option value="25">Massachusetts (MA)</option>
+                        <option value="26">Michigan (MI)</option>
+                        <option value="27">Minnesota (MN)</option>
+                        <option value="28">Mississippi (MS)</option>
+                        <option value="29">Missouri (MO)</option>
+                        <option value="30">Montana (MT)</option>
+                        <option value="31">Nebraska (NE)</option>
+                        <option value="32">Nevada (NV)</option>
+                        <option value="33">New Hampshire (NH)</option>
+                        <option value="34">New Jersey (NJ)</option>
+                        <option value="35">New Mexico (NM)</option>
+                        <option value="36">New York (NY)</option>
+                        <option value="37">North Carolina (NC)</option>
+                        <option value="38">North Dakota (ND)</option>
+                        <option value="39">Ohio (OH)</option>
+                        <option value="40">Oklahoma (OK)</option>
+                        <option value="42">Pennsylvania (PA)</option>
+                        <option value="44">Rhode Island (RI)</option>
+                        <option value="45">South Carolina (SC)</option>
+                        <option value="46">South Dakota (SD)</option>
+                        <option value="47">Tennessee (TN)</option>
+                        <option value="48">Texas (TX)</option>
+                        <option value="49">Utah (UT)</option>
+                        <option value="50">Vermont (VT)</option>
+                        <option value="51">Virginia (VA)</option>
+                        <option value="53">Washington (WA)</option>
+                        <option value="54">West Virginia (WV)</option>
+                        <option value="55">Wisconsin (WI)</option>
+                        <option value="56">Wyoming (WY)</option>
                     </select>
                 </div>
 
@@ -915,6 +962,81 @@ function setCachedResults(cacheKey, data) {
     
     const SPATIAL_REGIONS = {
         states: {
+            'AL': { fips: '01', name: 'Alabama', abbr: 'AL', center: [32.8067, -86.7911], zoom: 7, counties: {} },
+            'AK': { fips: '02', name: 'Alaska', abbr: 'AK', center: [61.3707, -152.4044], zoom: 4, counties: {} },
+            'AZ': { fips: '04', name: 'Arizona', abbr: 'AZ', center: [33.7298, -111.4312], zoom: 7, counties: {} },
+            'AR': { fips: '05', name: 'Arkansas', abbr: 'AR', center: [34.9697, -92.3731], zoom: 7, counties: {} },
+            'CA': {
+                fips: '06',
+                name: 'California',
+                abbr: 'CA',
+                center: [37.18, -119.45],
+                zoom: 6,
+                counties: {
+                    'Los Angeles': { name: 'Los Angeles', center: [34.05, -118.24], zoom: 10, note: 'LA Metro' },
+                    'San Francisco': { name: 'San Francisco', center: [37.77, -122.42], zoom: 12, note: 'San Francisco' },
+                    'Alameda': { name: 'Alameda', center: [37.65, -121.92], zoom: 10, note: 'Oakland / Berkeley' },
+                    'Santa Clara': { name: 'Santa Clara', center: [37.23, -121.69], zoom: 10, note: 'San Jose / Silicon Valley' },
+                    'San Diego': { name: 'San Diego', center: [33.03, -116.73], zoom: 9, note: 'San Diego' },
+                    'Orange': { name: 'Orange', center: [33.72, -117.78], zoom: 10, note: 'Anaheim / Irvine' },
+                    'Sacramento': { name: 'Sacramento', center: [38.45, -121.34], zoom: 10, note: 'Sacramento' },
+                    'Contra Costa': { name: 'Contra Costa', center: [37.92, -121.95], zoom: 10, note: 'Walnut Creek' },
+                    'San Mateo': { name: 'San Mateo', center: [37.43, -122.31], zoom: 10, note: 'San Mateo' },
+                    'Riverside': { name: 'Riverside', center: [33.74, -115.99], zoom: 8, note: 'Riverside / Palm Springs' },
+                    'San Bernardino': { name: 'San Bernardino', center: [34.84, -116.18], zoom: 8, note: 'San Bernardino' },
+                    'Fresno': { name: 'Fresno', center: [36.75, -119.65], zoom: 9, note: 'Fresno' }
+                }
+            },
+            'CO': { fips: '08', name: 'Colorado', abbr: 'CO', center: [39.0598, -105.3111], zoom: 7, counties: {} },
+            'CT': { fips: '09', name: 'Connecticut', abbr: 'CT', center: [41.5978, -72.7554], zoom: 9, counties: {} },
+            'DE': { fips: '10', name: 'Delaware', abbr: 'DE', center: [39.3185, -75.5071], zoom: 9, counties: {} },
+            'DC': { fips: '11', name: 'District of Columbia', abbr: 'DC', center: [38.8974, -77.0268], zoom: 11, counties: {} },
+            'FL': { fips: '12', name: 'Florida', abbr: 'FL', center: [27.7663, -81.6868], zoom: 7, counties: {} },
+            'GA': { fips: '13', name: 'Georgia', abbr: 'GA', center: [33.0406, -83.6431], zoom: 7, counties: {} },
+            'HI': { fips: '15', name: 'Hawaii', abbr: 'HI', center: [21.0943, -157.4983], zoom: 7, counties: {} },
+            'ID': {
+                fips: '16',
+                name: 'Idaho',
+                abbr: 'ID',
+                center: [44.35, -114.60],
+                zoom: 6,
+                counties: {
+                    'Ada': { name: 'Ada', center: [43.45, -116.24], zoom: 10, note: 'Boise / Meridian' },
+                    'Canyon': { name: 'Canyon', center: [43.64, -116.71], zoom: 10, note: 'Nampa / Caldwell' },
+                    'Kootenai': { name: 'Kootenai', center: [47.68, -116.70], zoom: 10, note: 'Coeur d’Alene' },
+                    'Bonneville': { name: 'Bonneville', center: [43.44, -111.60], zoom: 9, note: 'Idaho Falls' },
+                    'Twin Falls': { name: 'Twin Falls', center: [42.36, -114.66], zoom: 9, note: 'Twin Falls' },
+                    'Bannock': { name: 'Bannock', center: [42.67, -112.22], zoom: 10, note: 'Pocatello' },
+                    'Bonner': { name: 'Bonner', center: [48.30, -116.60], zoom: 9, note: 'Sandpoint' },
+                    'Latah': { name: 'Latah', center: [46.81, -116.71], zoom: 10, note: 'Moscow' },
+                    'Nez Perce': { name: 'Nez Perce', center: [46.33, -116.75], zoom: 10, note: 'Lewiston' },
+                    'Blaine': { name: 'Blaine', center: [43.55, -114.15], zoom: 9, note: 'Sun Valley / Ketchum' }
+                }
+            },
+            'IL': { fips: '17', name: 'Illinois', abbr: 'IL', center: [40.3495, -88.9861], zoom: 7, counties: {} },
+            'IN': { fips: '18', name: 'Indiana', abbr: 'IN', center: [39.8494, -86.2583], zoom: 7, counties: {} },
+            'IA': { fips: '19', name: 'Iowa', abbr: 'IA', center: [42.0115, -93.2105], zoom: 7, counties: {} },
+            'KS': { fips: '20', name: 'Kansas', abbr: 'KS', center: [38.5266, -96.7265], zoom: 7, counties: {} },
+            'KY': { fips: '21', name: 'Kentucky', abbr: 'KY', center: [37.6681, -84.6701], zoom: 7, counties: {} },
+            'LA': { fips: '22', name: 'Louisiana', abbr: 'LA', center: [31.1695, -91.8678], zoom: 7, counties: {} },
+            'ME': { fips: '23', name: 'Maine', abbr: 'ME', center: [44.6939, -69.3819], zoom: 7, counties: {} },
+            'MD': { fips: '24', name: 'Maryland', abbr: 'MD', center: [39.0639, -76.8021], zoom: 8, counties: {} },
+            'MA': { fips: '25', name: 'Massachusetts', abbr: 'MA', center: [42.2302, -71.5301], zoom: 8, counties: {} },
+            'MI': { fips: '26', name: 'Michigan', abbr: 'MI', center: [43.3266, -84.5361], zoom: 7, counties: {} },
+            'MN': { fips: '27', name: 'Minnesota', abbr: 'MN', center: [45.6945, -93.9002], zoom: 6, counties: {} },
+            'MS': { fips: '28', name: 'Mississippi', abbr: 'MS', center: [32.7416, -89.6787], zoom: 7, counties: {} },
+            'MO': { fips: '29', name: 'Missouri', abbr: 'MO', center: [38.4561, -92.2884], zoom: 7, counties: {} },
+            'MT': { fips: '30', name: 'Montana', abbr: 'MT', center: [47.0527, -109.6341], zoom: 6, counties: {} },
+            'NE': { fips: '31', name: 'Nebraska', abbr: 'NE', center: [41.1254, -98.2681], zoom: 7, counties: {} },
+            'NV': { fips: '32', name: 'Nevada', abbr: 'NV', center: [38.3135, -117.0554], zoom: 6, counties: {} },
+            'NH': { fips: '33', name: 'New Hampshire', abbr: 'NH', center: [43.4525, -71.5639], zoom: 8, counties: {} },
+            'NJ': { fips: '34', name: 'New Jersey', abbr: 'NJ', center: [40.2989, -74.5210], zoom: 8, counties: {} },
+            'NM': { fips: '35', name: 'New Mexico', abbr: 'NM', center: [34.8405, -106.2485], zoom: 7, counties: {} },
+            'NY': { fips: '36', name: 'New York', abbr: 'NY', center: [42.1657, -74.9481], zoom: 7, counties: {} },
+            'NC': { fips: '37', name: 'North Carolina', abbr: 'NC', center: [35.6301, -79.8064], zoom: 7, counties: {} },
+            'ND': { fips: '38', name: 'North Dakota', abbr: 'ND', center: [47.5289, -99.7840], zoom: 7, counties: {} },
+            'OH': { fips: '39', name: 'Ohio', abbr: 'OH', center: [40.3888, -82.7649], zoom: 7, counties: {} },
+            'OK': { fips: '40', name: 'Oklahoma', abbr: 'OK', center: [35.5653, -96.9289], zoom: 7, counties: {} },
             'OR': {
                 fips: '41',
                 name: 'Oregon',
@@ -960,6 +1082,15 @@ function setCachedResults(cacheKey, data) {
                     'Yamhill': { name: 'Yamhill', center: [45.23, -123.31], zoom: 10, note: 'McMinnville / Newberg' }
                 }
             },
+            'PA': { fips: '42', name: 'Pennsylvania', abbr: 'PA', center: [40.5908, -77.2098], zoom: 7, counties: {} },
+            'RI': { fips: '44', name: 'Rhode Island', abbr: 'RI', center: [41.6809, -71.5118], zoom: 10, counties: {} },
+            'SC': { fips: '45', name: 'South Carolina', abbr: 'SC', center: [33.8569, -80.9450], zoom: 7, counties: {} },
+            'SD': { fips: '46', name: 'South Dakota', abbr: 'SD', center: [44.2998, -99.4388], zoom: 7, counties: {} },
+            'TN': { fips: '47', name: 'Tennessee', abbr: 'TN', center: [35.7478, -86.6923], zoom: 7, counties: {} },
+            'TX': { fips: '48', name: 'Texas', abbr: 'TX', center: [31.0545, -97.5635], zoom: 6, counties: {} },
+            'UT': { fips: '49', name: 'Utah', abbr: 'UT', center: [40.1500, -111.8624], zoom: 7, counties: {} },
+            'VT': { fips: '50', name: 'Vermont', abbr: 'VT', center: [44.0459, -72.7107], zoom: 8, counties: {} },
+            'VA': { fips: '51', name: 'Virginia', abbr: 'VA', center: [37.7693, -78.1700], zoom: 7, counties: {} },
             'WA': {
                 fips: '53',
                 name: 'Washington',
@@ -990,46 +1121,9 @@ function setCachedResults(cacheKey, data) {
                     'Grant': { name: 'Grant', center: [47.21, -119.47], zoom: 9, note: 'Moses Lake' }
                 }
             },
-            'CA': {
-                fips: '06',
-                name: 'California',
-                abbr: 'CA',
-                center: [37.18, -119.45],
-                zoom: 6,
-                counties: {
-                    'Los Angeles': { name: 'Los Angeles', center: [34.05, -118.24], zoom: 10, note: 'LA Metro' },
-                    'San Francisco': { name: 'San Francisco', center: [37.77, -122.42], zoom: 12, note: 'San Francisco' },
-                    'Alameda': { name: 'Alameda', center: [37.65, -121.92], zoom: 10, note: 'Oakland / Berkeley' },
-                    'Santa Clara': { name: 'Santa Clara', center: [37.23, -121.69], zoom: 10, note: 'San Jose / Silicon Valley' },
-                    'San Diego': { name: 'San Diego', center: [33.03, -116.73], zoom: 9, note: 'San Diego' },
-                    'Orange': { name: 'Orange', center: [33.72, -117.78], zoom: 10, note: 'Anaheim / Irvine' },
-                    'Sacramento': { name: 'Sacramento', center: [38.45, -121.34], zoom: 10, note: 'Sacramento' },
-                    'Contra Costa': { name: 'Contra Costa', center: [37.92, -121.95], zoom: 10, note: 'Walnut Creek' },
-                    'San Mateo': { name: 'San Mateo', center: [37.43, -122.31], zoom: 10, note: 'San Mateo' },
-                    'Riverside': { name: 'Riverside', center: [33.74, -115.99], zoom: 8, note: 'Riverside / Palm Springs' },
-                    'San Bernardino': { name: 'San Bernardino', center: [34.84, -116.18], zoom: 8, note: 'San Bernardino' },
-                    'Fresno': { name: 'Fresno', center: [36.75, -119.65], zoom: 9, note: 'Fresno' }
-                }
-            },
-            'ID': {
-                fips: '16',
-                name: 'Idaho',
-                abbr: 'ID',
-                center: [44.35, -114.60],
-                zoom: 6,
-                counties: {
-                    'Ada': { name: 'Ada', center: [43.45, -116.24], zoom: 10, note: 'Boise / Meridian' },
-                    'Canyon': { name: 'Canyon', center: [43.64, -116.71], zoom: 10, note: 'Nampa / Caldwell' },
-                    'Kootenai': { name: 'Kootenai', center: [47.68, -116.70], zoom: 10, note: 'Coeur d’Alene' },
-                    'Bonneville': { name: 'Bonneville', center: [43.44, -111.60], zoom: 9, note: 'Idaho Falls' },
-                    'Twin Falls': { name: 'Twin Falls', center: [42.36, -114.66], zoom: 9, note: 'Twin Falls' },
-                    'Bannock': { name: 'Bannock', center: [42.67, -112.22], zoom: 10, note: 'Pocatello' },
-                    'Bonner': { name: 'Bonner', center: [48.30, -116.60], zoom: 9, note: 'Sandpoint' },
-                    'Latah': { name: 'Latah', center: [46.81, -116.71], zoom: 10, note: 'Moscow' },
-                    'Nez Perce': { name: 'Nez Perce', center: [46.33, -116.75], zoom: 10, note: 'Lewiston' },
-                    'Blaine': { name: 'Blaine', center: [43.55, -114.15], zoom: 9, note: 'Sun Valley / Ketchum' }
-                }
-            }
+            'WV': { fips: '54', name: 'West Virginia', abbr: 'WV', center: [38.4912, -80.9545], zoom: 7, counties: {} },
+            'WI': { fips: '55', name: 'Wisconsin', abbr: 'WI', center: [44.2685, -89.6165], zoom: 7, counties: {} },
+            'WY': { fips: '56', name: 'Wyoming', abbr: 'WY', center: [42.7560, -107.3025], zoom: 7, counties: {} }
         },
         regions: {
             'PNW': {
@@ -1759,8 +1853,7 @@ const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${e
         
         // Geocode and move map FIRST — always navigate
         const stateAbbr = getSelectedState();
-        const stateNameMap = { 'OR': 'Oregon', 'WA': 'Washington', 'CA': 'California', 'ID': 'Idaho' };
-        const stateName = stateNameMap[stateAbbr] || 'Oregon';
+        const stateName = SPATIAL_REGIONS.states[stateAbbr]?.name || 'Oregon';
         
         try {
             const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ', ' + stateName)}&limit=1`;
@@ -1807,14 +1900,21 @@ const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${e
             }, 5000);
         }
     }
-            function getSelectedState() {
+    function getSelectedState() {
         const stateSelect = document.getElementById('stateSelect');
         const stateFips = stateSelect ? stateSelect.value : '41';
         const stateMap = {
-            '41': 'OR',
-            '53': 'WA',
-            '06': 'CA',
-            '16': 'ID'
+            '01': 'AL', '02': 'AK', '04': 'AZ', '05': 'AR', '06': 'CA',
+            '08': 'CO', '09': 'CT', '10': 'DE', '11': 'DC', '12': 'FL',
+            '13': 'GA', '15': 'HI', '16': 'ID', '17': 'IL', '18': 'IN',
+            '19': 'IA', '20': 'KS', '21': 'KY', '22': 'LA', '23': 'ME',
+            '24': 'MD', '25': 'MA', '26': 'MI', '27': 'MN', '28': 'MS',
+            '29': 'MO', '30': 'MT', '31': 'NE', '32': 'NV', '33': 'NH',
+            '34': 'NJ', '35': 'NM', '36': 'NY', '37': 'NC', '38': 'ND',
+            '39': 'OH', '40': 'OK', '41': 'OR', '42': 'PA', '44': 'RI',
+            '45': 'SC', '46': 'SD', '47': 'TN', '48': 'TX', '49': 'UT',
+            '50': 'VT', '51': 'VA', '53': 'WA', '54': 'WV', '55': 'WI',
+            '56': 'WY'
         };
         return stateMap[stateFips] || 'OR';
     }
