@@ -1881,20 +1881,24 @@ async function loadFirstHomeLimits() {
         document.getElementById('savedListingsExportModal').classList.add('hidden');
     }
 
-    function toggleSelectAllExports(e) {
-        if (e && e.target.tagName === 'INPUT') return; 
-        const mainCb = document.getElementById('selectAllExportsCheckbox');
-        if (e && e.target.tagName !== 'INPUT') {
-            mainCb.checked = !mainCb.checked;
-        }
+    window.onSelectAllCheckboxChange = function(isChecked) {
         const cbs = document.querySelectorAll('.export-pull-cb');
-        cbs.forEach(cb => cb.checked = mainCb.checked);
+        cbs.forEach(cb => cb.checked = isChecked);
+    };
+
+    function toggleSelectAllExports(e) {
+        if (e && e.target && e.target.tagName === 'INPUT') return;
+        const mainCb = document.getElementById('selectAllExportsCheckbox');
+        if (mainCb) {
+            mainCb.checked = !mainCb.checked;
+            window.onSelectAllCheckboxChange(mainCb.checked);
+        }
     }
 
     window.updateSelectAllState = function() {
         const cbs = Array.from(document.querySelectorAll('.export-pull-cb'));
         const mainCb = document.getElementById('selectAllExportsCheckbox');
-        if (cbs.length > 0) {
+        if (cbs.length > 0 && mainCb) {
             mainCb.checked = cbs.every(cb => cb.checked);
         }
     };
