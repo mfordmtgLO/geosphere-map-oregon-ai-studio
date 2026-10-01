@@ -1,4 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
+import { readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
 import { kv } from "@vercel/kv";
 import { buildOverlaySets, buildProgramReviewSets } from "./overlay-classification.js";
 import { getProgramReviewConfiguration } from "./program-review-config.js";
@@ -6,6 +8,7 @@ import { getProgramReviewConfiguration } from "./program-review-config.js";
 const CACHE_KEY_PREFIX = "listings:";
 const MAX_SCAN_PAGES = 100;
 const SCAN_COUNT = 100;
+const BUNDLED_CACHE_PATH = path.join(process.cwd(), "data/saved-listings-cache.json");
 
 function sendJson(res, status, payload) {
   res.setHeader("Content-Type", "application/json");
@@ -51,8 +54,8 @@ async function listSnapshotKeys() {
   let cursor = "0";
   for (let page = 0; page < MAX_SCAN_PAGES; page++) {
     const [nextCursor, batch] = await kv.scan(cursor, { match: `${CACHE_KEY_PREFIX}*`, count: SCAN_COUNT });
-    keys.push(...batch);
-    cursor = String(nextCursor);
+    if (Array.isArray(batch)) keys.push(...batch);
+    cursor = String(nextCursor ?? "0");
     if (cursor === "0") break;
   }
   return [...new Set(keys)];
@@ -63,10 +66,12 @@ async function readSnapshots(keys) {
   for (let index = 0; index < keys.length; index += SCAN_COUNT) {
     const chunk = keys.slice(index, index + SCAN_COUNT);
     const values = await kv.mget(...chunk);
-    values.forEach((value, valueIndex) => {
-      const snapshot = normalizeSnapshot(chunk[valueIndex], value);
-      if (snapshot && snapshot.count > 0) snapshots.push(snapshot);
-    });
+    if (Array.isArray(values)) {
+      values.forEach((value, valueIndex) => {
+        const snapshot = normalizeSnapshot(chunk[valueIndex], value);
+        if (snapshot && snapshot.count > 0) snapshots.push(snapshot);
+      });
+    }
   }
   return snapshots.sort((a, b) => Number(b.savedAt ?? 0) - Number(a.savedAt ?? 0));
 }
@@ -95,11 +100,56 @@ async function refreshLegacyOverlaySets(snapshot) {
   };
 }
 
+async function loadBundledSnapshots() {
+  try {
+    const rawText = await readFile(BUNDLED_CACHE_PATH, "utf8");
+    const json = JSON.parse(rawText);
+    if (Array.isArray(json)) return json;
+  } catch (e) {
+    console.warn("Could not read bundled saved listings cache:", e.message);
+  }
+  return [];
+}
+
+export async function saveLocalListingSnapshot(snapshot) {
+  try {
+    const existing = await loadBundledSnapshots();
+    const filtered = existing.filter(s => s.cacheKey !== snapshot.cacheKey && s.snapshotId !== snapshot.snapshotId);
+    filtered.unshift(snapshot);
+    await writeFile(BUNDLED_CACHE_PATH, JSON.stringify(filtered.slice(0, 50), null, 2), "utf8");
+  } catch (e) {
+    console.warn("Local snapshot backup save failed:", e.message);
+  }
+}
+
 /** Shared cache-only reader for the protected dashboard export and the map UI. */
 export async function readSavedListingPulls() {
-  const keys = await listSnapshotKeys();
-  const snapshots = await readSnapshots(keys);
-  return Promise.all(snapshots.map(refreshLegacyOverlaySets));
+  let kvSnapshots = [];
+  try {
+    const keys = await listSnapshotKeys();
+    if (keys.length > 0) {
+      kvSnapshots = await readSnapshots(keys);
+    }
+  } catch (e) {
+    console.warn("KV snapshot fetch encountered an issue, checking disk cache fallback:", e.message);
+  }
+
+  // Combine KV snapshots and bundled disk cache, deduplicating by snapshotId / cacheKey
+  const bundledSnapshots = await loadBundledSnapshots();
+  const mapByCacheKey = new Map();
+
+  // Load bundled snapshots first as base
+  bundledSnapshots.forEach(s => {
+    if (s && s.cacheKey) mapByCacheKey.set(s.cacheKey, s);
+  });
+
+  // Overwrite with newer KV snapshots if available
+  kvSnapshots.forEach(s => {
+    if (s && s.cacheKey) mapByCacheKey.set(s.cacheKey, s);
+  });
+
+  const allSnapshots = Array.from(mapByCacheKey.values()).sort((a, b) => new Date(b.savedAt ?? 0) - new Date(a.savedAt ?? 0));
+  return Promise.all(allSnapshots.map(refreshLegacyOverlaySets));
 }
 
 /**
