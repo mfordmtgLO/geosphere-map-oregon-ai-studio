@@ -235,7 +235,7 @@
                     </div>
                 </div>
 
-                <div class="mt-3 rounded-xl border border-emerald-900/70 bg-emerald-950/30 p-3 space-y-2">
+                <div id="firstHomeCardContainer" class="mt-3 rounded-xl border border-emerald-900/70 bg-emerald-950/30 p-3 space-y-2 hidden">
                     <div class="flex items-center justify-between gap-2">
                         <span class="text-xs font-semibold uppercase tracking-wider text-emerald-300">OHCS FirstHome price screen</span>
                         <span id="firstHomeStatus" class="text-[10px] font-semibold text-slate-500">Loading official limits…</span>
@@ -2326,6 +2326,10 @@ function syncLakeviewPriceCapControls(pull = null) {
     });
 }
 
+function cleanCountyKey(name) {
+    return String(name || '').replace(/\s+county$/i, '').trim().toLowerCase();
+}
+
 function getFirstHomeOverrides() {
     try { return JSON.parse(localStorage.getItem(FIRST_HOME_OVERRIDE_STORAGE_KEY) || '{}'); }
     catch { return {}; }
@@ -2336,17 +2340,78 @@ function saveFirstHomeOverrides(overrides) {
 }
 
 function getEffectiveFirstHomeScreening(listing) {
-    const screening = listing?.overlayEligibility?.firstHome;
-    if (!screening?.available) return screening || null;
-    const override = getFirstHomeOverrides()?.[screening.county]?.[screening.areaType];
+    let screening = listing?.overlayEligibility?.firstHome;
+    if (!screening || !screening.available) {
+        const c = listing?.county ? String(listing.county).replace(/\s+county$/i, '').trim() : '';
+        screening = {
+            available: true,
+            county: c,
+            areaType: 'non_targeted',
+            priceLimit: 566354
+        };
+    }
+
+    const rawCounty = screening.county || listing?.county || '';
+    const targetKey = cleanCountyKey(rawCounty);
+    const areaType = screening.areaType || 'non_targeted';
+
+    const overrides = getFirstHomeOverrides();
+    let override = undefined;
+    for (const [k, v] of Object.entries(overrides)) {
+        if (cleanCountyKey(k) === targetKey) {
+            override = v?.[areaType];
+            break;
+        }
+    }
+
     const priceLimit = Number.isFinite(Number(override)) ? Number(override) : screening.priceLimit;
     const price = Number(listing.price);
     const priceEligible = Number.isFinite(price) && price > 0 && Number.isFinite(priceLimit) ? price <= priceLimit : null;
-    return { ...screening, priceLimit, priceEligible, lmiEligible: listing?.overlayEligibility?.lmi === true && priceEligible === true, localOverride: Number.isFinite(Number(override)) };
+    const isLmi = listing?.overlayEligibility?.lmi === true;
+    const lmiEligible = (isLmi || areaType === 'targeted') && priceEligible === true;
+
+    return { 
+        ...screening, 
+        priceLimit, 
+        priceEligible, 
+        lmiEligible, 
+        localOverride: Number.isFinite(Number(override)) 
+    };
 }
 
 function firstHomeListingPasses(listing) {
-    return getEffectiveFirstHomeScreening(listing)?.lmiEligible === true;
+    const effective = getEffectiveFirstHomeScreening(listing);
+    if (!effective) return false;
+    // Price must be within the active targeted/non-targeted county limit slider
+    if (effective.priceEligible !== true) return false;
+
+    // Check if LMI checkbox/filter requirement is checked or applicable
+    const lmiFilterChecked = document.getElementById('toggleLMI')?.checked === true;
+    if (lmiFilterChecked && !listing?.overlayEligibility?.lmi && effective.areaType !== 'targeted') {
+        return false;
+    }
+
+    return true;
+}
+
+function syncFirstHomeLimitControls(pull = null) {
+    const cardContainer = document.getElementById('firstHomeCardContainer');
+    if (!cardContainer) return;
+    const currentOverlay = document.getElementById('savedOverlaySelect')?.value;
+    const isFirstHome = currentOverlay === 'firstHome';
+    cardContainer.classList.toggle('hidden', !isFirstHome);
+
+    if (isFirstHome && pull?.area?.county) {
+        const select = document.getElementById('firstHomeCountySelect');
+        if (select && select.options.length > 0) {
+            const pullCountyKey = cleanCountyKey(pull.area.county);
+            const matchingOption = Array.from(select.options).find(opt => cleanCountyKey(opt.value) === pullCountyKey);
+            if (matchingOption && select.value !== matchingOption.value) {
+                select.value = matchingOption.value;
+                renderFirstHomeLimitControls();
+            }
+        }
+    }
 }
 
 function renderFirstHomeLimitControls() {
@@ -2354,7 +2419,7 @@ function renderFirstHomeLimitControls() {
     const controls = document.getElementById('firstHomeLimitControls');
     const reset = document.getElementById('btnResetFirstHomeOverrides');
     if (!firstHomeLimitData?.county_price_limits?.length || !select || !controls || !reset) return;
-    const county = firstHomeLimitData.county_price_limits.find((item) => item.county === select.value) || firstHomeLimitData.county_price_limits[0];
+    const county = firstHomeLimitData.county_price_limits.find((item) => cleanCountyKey(item.county) === cleanCountyKey(select.value)) || firstHomeLimitData.county_price_limits[0];
     const overrides = getFirstHomeOverrides()[county.county] || {};
     const fields = [
         ['targeted', 'Targeted area maximum', county.targeted_price_limit_usd],
@@ -2801,6 +2866,7 @@ async function loadFirstHomeLimits() {
         const status = document.getElementById('savedPullStatus');
         const tractField = document.getElementById('formTract');
         const pull = sharedSavedPulls.find((item) => item.snapshotId === select.value);
+        syncFirstHomeLimitControls(pull);
         syncLakeviewPriceCapControls(pull);
         syncUsdaRdControls();
         document.getElementById('fhfaCountyLimitDisclosure')?.classList.toggle('hidden', overlay !== 'fhfaCountyLimit');
