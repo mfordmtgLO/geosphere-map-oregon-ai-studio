@@ -374,23 +374,62 @@
 
                 <div id="usdaRdControls" class="hidden rounded-xl border border-emerald-900/70 bg-emerald-950/30 p-3 space-y-3 mt-2">
                     <div class="flex items-center justify-between gap-2">
-                        <span class="text-xs font-semibold uppercase tracking-wider text-emerald-300">USDA RD Income Limit</span>
+                        <span class="text-xs font-semibold uppercase tracking-wider text-emerald-300">2026 USDA RD Income Limits</span>
+                        <span id="usdaCountyNameBadge" class="text-[10px] font-semibold text-emerald-400 font-mono">Douglas County</span>
                     </div>
+                    <p class="text-[10px] leading-relaxed text-slate-400">Sliders are pre-set to the official maximum annual household income limit for the selected county. Loan officers or buyers can self-input/move sliders to test borrower income qualification.</p>
+                    
+                    <!-- Gemini Search Verification Button -->
+                    <button id="btnVerifyUsdaLimitsGemini" type="button" class="w-full flex items-center justify-center gap-1.5 rounded-lg border border-emerald-700/60 bg-emerald-950/80 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-200 hover:border-emerald-500 hover:bg-emerald-900/50 transition">
+                        <span>🔍 Verify 2026 Limits via Gemini Search</span>
+                    </button>
+                    <div id="usdaGeminiVerificationResult" class="hidden rounded-lg border border-emerald-800/80 bg-slate-950 p-2 text-[10px] leading-relaxed text-emerald-300 space-y-1"></div>
+
+                    <!-- Active Household Size Filter Radio Toggle -->
                     <div class="space-y-1">
-                        <label for="usdaHouseholdSize" class="text-[10px] text-emerald-200">Household Size</label>
-                        <select id="usdaHouseholdSize" class="w-full rounded bg-slate-900 border border-emerald-800 text-xs text-emerald-100 p-1 outline-none">
-                            <option value="1-4">1-4 Members</option>
-                            <option value="5-8">5-8 Members</option>
-                        </select>
-                    </div>
-                    <div class="border-t border-emerald-900/50 pt-3 mt-1 pb-2">
-                        <div class="flex items-center justify-between gap-2 mb-1">
-                            <label for="usdaBorrowerIncome" class="text-[10px] font-semibold text-emerald-300 uppercase tracking-wider">Household Income Filter</label>
-                            <output id="usdaBorrowerIncomeValue" class="text-[10px] font-mono font-semibold text-emerald-300">Off</output>
+                        <label class="text-[10px] font-semibold uppercase tracking-wider text-emerald-300">Active Household Size Screening</label>
+                        <div class="flex items-center gap-4 text-[11px] text-slate-300 pt-0.5">
+                            <label class="flex items-center gap-1.5 cursor-pointer">
+                                <input type="radio" name="usdaHouseholdSizeFilter" value="1-4" checked class="accent-emerald-500">
+                                <span>1–4 Persons</span>
+                            </label>
+                            <label class="flex items-center gap-1.5 cursor-pointer">
+                                <input type="radio" name="usdaHouseholdSizeFilter" value="5-8" class="accent-emerald-500">
+                                <span>5–8 Persons</span>
+                            </label>
                         </div>
-                        <input id="usdaBorrowerIncome" type="range" min="0" max="250000" step="1000" value="0" class="w-full accent-emerald-400">
-                        <p class="text-[9px] leading-relaxed text-emerald-200/80 mt-1">Set to 0 to disable. Excludes properties where income exceeds the county limit for the household size.</p>
                     </div>
+
+                    <!-- 1-4 Person Family Size Income Slider -->
+                    <div class="border-t border-emerald-900/50 pt-2 space-y-1">
+                        <div class="flex items-center justify-between gap-2">
+                            <label for="usdaIncomeSlider1to4" class="text-[11px] font-semibold text-emerald-200">1–4 Person Max Annual Income</label>
+                            <output id="usdaIncomeValue1to4" class="text-[11px] font-mono font-bold text-emerald-300">$112,450</output>
+                        </div>
+                        <input id="usdaIncomeSlider1to4" type="range" min="50000" max="250000" step="500" value="112450" class="w-full accent-emerald-400">
+                        <div class="flex items-center justify-between text-[9px] text-slate-500">
+                            <span id="usdaOfficialLabel1to4">Official 2026 base: $112,450</span>
+                            <span>1-4 Persons</span>
+                        </div>
+                    </div>
+
+                    <!-- 5-8 Person Family Size Income Slider -->
+                    <div class="border-t border-emerald-900/50 pt-2 space-y-1">
+                        <div class="flex items-center justify-between gap-2">
+                            <label for="usdaIncomeSlider5to8" class="text-[11px] font-semibold text-emerald-200">5–8 Person Max Annual Income</label>
+                            <output id="usdaIncomeValue5to8" class="text-[11px] font-mono font-bold text-emerald-300">$148,450</output>
+                        </div>
+                        <input id="usdaIncomeSlider5to8" type="range" min="50000" max="300000" step="500" value="148450" class="w-full accent-emerald-400">
+                        <div class="flex items-center justify-between text-[9px] text-slate-500">
+                            <span id="usdaOfficialLabel5to8">Official 2026 base: $148,450</span>
+                            <span>5-8 Persons</span>
+                        </div>
+                    </div>
+
+                    <!-- Reset Button -->
+                    <button id="btnResetUsdaLimits" type="button" class="w-full rounded-lg border border-slate-700 px-2.5 py-1.5 text-[11px] font-semibold text-slate-300 hover:border-emerald-700 hover:text-emerald-200 transition">
+                        Reset local review values to official limits
+                    </button>
                 </div>
                 
                 <input type="text" id="searchInput" placeholder="e.g., address, city, county" 
@@ -2253,6 +2292,8 @@ function idahoMrbTaxExemptListingPasses(listing) {
 }
 
 
+const USDA_RD_OVERRIDE_STORAGE_KEY = 'geosphere_usda_income_overrides_v1';
+
 const USDA_RD_INCOME_LIMITS = {
     // Oregon
     'MULTNOMAH': { '1-4': 135500, '5-8': 178850 },
@@ -2262,6 +2303,7 @@ const USDA_RD_INCOME_LIMITS = {
     'COLUMBIA': { '1-4': 135500, '5-8': 178850 },
     'BENTON': { '1-4': 125150, '5-8': 165200 },
     'DESCHUTES': { '1-4': 120550, '5-8': 159150 },
+    'HOOD RIVER': { '1-4': 121500, '5-8': 160400 },
     // Washington
     'KING': { '1-4': 173550, '5-8': 229100 },
     'SNOHOMISH': { '1-4': 173550, '5-8': 229100 },
@@ -2269,37 +2311,109 @@ const USDA_RD_INCOME_LIMITS = {
     'CLARK': { '1-4': 135500, '5-8': 178850 }
 };
 
-function getUsdaCountyLimit(county, size) {
-    let c = String(county || '').toUpperCase().replace(/\s+COUNTY/g, '').trim();
-    if (USDA_RD_INCOME_LIMITS[c] && USDA_RD_INCOME_LIMITS[c][size]) {
-        return USDA_RD_INCOME_LIMITS[c][size];
+function getUsdaOverrides() {
+    try { return JSON.parse(localStorage.getItem(USDA_RD_OVERRIDE_STORAGE_KEY) || '{}'); }
+    catch { return {}; }
+}
+
+function saveUsdaOverrides(overrides) {
+    localStorage.setItem(USDA_RD_OVERRIDE_STORAGE_KEY, JSON.stringify(overrides));
+}
+
+function getUsdaCountyOfficialLimits(countyName) {
+    const c = String(countyName || '').toUpperCase().replace(/\s+COUNTY/g, '').trim();
+    if (USDA_RD_INCOME_LIMITS[c]) {
+        return { official1to4: USDA_RD_INCOME_LIMITS[c]['1-4'], official5to8: USDA_RD_INCOME_LIMITS[c]['5-8'] };
     }
-    // Default baseline for most counties
-    return size === '5-8' ? 148450 : 112450;
+    return { official1to4: 112450, official5to8: 148450 };
+}
+
+function getEffectiveUsdaCountyLimits(countyName) {
+    const cKey = cleanCountyKey(countyName);
+    const official = getUsdaCountyOfficialLimits(countyName);
+    
+    const overrides = getUsdaOverrides();
+    let localOverride = undefined;
+    for (const [k, v] of Object.entries(overrides)) {
+        if (cleanCountyKey(k) === cKey) {
+            localOverride = v;
+            break;
+        }
+    }
+
+    const limit1to4 = Number.isFinite(Number(localOverride?.['1-4'])) ? Number(localOverride['1-4']) : official.official1to4;
+    const limit5to8 = Number.isFinite(Number(localOverride?.['5-8'])) ? Number(localOverride['5-8']) : official.official5to8;
+
+    return {
+        limit1to4,
+        limit5to8,
+        official1to4: official.official1to4,
+        official5to8: official.official5to8,
+        hasLocalOverride: Boolean(localOverride)
+    };
+}
+
+function renderUsdaRdControls(countyName = 'Douglas') {
+    const cleanName = (countyName ? String(countyName).replace(/\s+county$/i, '').trim() : 'Douglas');
+    const countyBadge = document.getElementById('usdaCountyNameBadge');
+    if (countyBadge) {
+        countyBadge.textContent = cleanName + ' County';
+    }
+
+    const effective = getEffectiveUsdaCountyLimits(countyName);
+
+    const slider1to4 = document.getElementById('usdaIncomeSlider1to4');
+    const output1to4 = document.getElementById('usdaIncomeValue1to4');
+    const label1to4 = document.getElementById('usdaOfficialLabel1to4');
+
+    if (slider1to4 && output1to4) {
+        slider1to4.value = String(effective.limit1to4);
+        output1to4.textContent = formatFirstHomeDollars(effective.limit1to4);
+        if (label1to4) label1to4.textContent = `Official 2026 base: ${formatFirstHomeDollars(effective.official1to4)}`;
+    }
+
+    const slider5to8 = document.getElementById('usdaIncomeSlider5to8');
+    const output5to8 = document.getElementById('usdaIncomeValue5to8');
+    const label5to8 = document.getElementById('usdaOfficialLabel5to8');
+
+    if (slider5to8 && output5to8) {
+        slider5to8.value = String(effective.limit5to8);
+        output5to8.textContent = formatFirstHomeDollars(effective.limit5to8);
+        if (label5to8) label5to8.textContent = `Official 2026 base: ${formatFirstHomeDollars(effective.official5to8)}`;
+    }
 }
 
 function usdaListingPasses(listing) {
     if (!listing?.overlayEligibility?.usda) return false;
-    
-    const slider = document.getElementById('usdaBorrowerIncome');
+
+    const activeSizeRadio = document.querySelector('input[name="usdaHouseholdSizeFilter"]:checked');
+    const size = activeSizeRadio ? activeSizeRadio.value : '1-4';
+
+    const effective = getEffectiveUsdaCountyLimits(listing.county);
+
+    const slider = size === '5-8' 
+        ? document.getElementById('usdaIncomeSlider5to8') 
+        : document.getElementById('usdaIncomeSlider1to4');
+
     if (!slider) return true;
-    
+
     const borrowerIncome = Number(slider.value);
-    if (borrowerIncome <= 0) return true; // Filter disabled
-    
-    const sizeSelect = document.getElementById('usdaHouseholdSize');
-    const size = sizeSelect ? sizeSelect.value : '1-4';
-    
-    const limit = getUsdaCountyLimit(listing.county, size);
-    return borrowerIncome <= limit;
+    const maxLimit = size === '5-8' ? effective.limit5to8 : effective.limit1to4;
+
+    return borrowerIncome <= maxLimit;
 }
 
-function syncUsdaRdControls() {
+function syncUsdaRdControls(pull = null) {
     const controls = document.getElementById('usdaRdControls');
     if (!controls) return;
     const overlay = document.getElementById('savedOverlaySelect')?.value;
-    const selected = overlay === 'usda' || overlay === 'lmiUsda';
+    const selected = overlay === 'usda' || overlay === 'lmiUsda' || document.getElementById('toggleUSDA')?.checked === true;
     controls.classList.toggle('hidden', !selected);
+
+    if (selected) {
+        const currentCounty = pull?.area?.county || 'Douglas';
+        renderUsdaRdControls(currentCounty);
+    }
 }
 
 function syncLakeviewPriceCapControls(pull = null) {
@@ -3078,22 +3192,89 @@ async function loadFirstHomeLimits() {
         }));
         
         
-        const usdaIncomeSlider = document.getElementById('usdaBorrowerIncome');
-        if (usdaIncomeSlider) {
-            usdaIncomeSlider.addEventListener('input', (event) => {
+        // USDA RD Income Limit Event Listeners
+        const usdaSlider1to4 = document.getElementById('usdaIncomeSlider1to4');
+        if (usdaSlider1to4) {
+            usdaSlider1to4.addEventListener('input', (event) => {
                 const val = Number(event.target.value);
-                const out = document.getElementById('usdaBorrowerIncomeValue');
-                if (out) out.textContent = val > 0 ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val) : 'Off';
+                const out = document.getElementById('usdaIncomeValue1to4');
+                if (out) out.textContent = formatFirstHomeDollars(val);
+
+                const select = document.getElementById('savedPullSelect');
+                const pull = sharedSavedPulls.find((item) => item.snapshotId === select?.value);
+                const county = pull?.area?.county || 'Douglas';
+
+                const next = getUsdaOverrides();
+                next[county] = { ...(next[county] || {}), '1-4': val };
+                saveUsdaOverrides(next);
                 renderSelectedSavedPull();
             });
         }
-        
-        const usdaHouseholdSize = document.getElementById('usdaHouseholdSize');
-        if (usdaHouseholdSize) {
-            usdaHouseholdSize.addEventListener('change', () => {
+
+        const usdaSlider5to8 = document.getElementById('usdaIncomeSlider5to8');
+        if (usdaSlider5to8) {
+            usdaSlider5to8.addEventListener('input', (event) => {
+                const val = Number(event.target.value);
+                const out = document.getElementById('usdaIncomeValue5to8');
+                if (out) out.textContent = formatFirstHomeDollars(val);
+
+                const select = document.getElementById('savedPullSelect');
+                const pull = sharedSavedPulls.find((item) => item.snapshotId === select?.value);
+                const county = pull?.area?.county || 'Douglas';
+
+                const next = getUsdaOverrides();
+                next[county] = { ...(next[county] || {}), '5-8': val };
+                saveUsdaOverrides(next);
                 renderSelectedSavedPull();
             });
         }
+
+        document.querySelectorAll('input[name="usdaHouseholdSizeFilter"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                renderSelectedSavedPull();
+            });
+        });
+
+        document.getElementById('btnResetUsdaLimits')?.addEventListener('click', () => {
+            localStorage.removeItem(USDA_RD_OVERRIDE_STORAGE_KEY);
+            const select = document.getElementById('savedPullSelect');
+            const pull = sharedSavedPulls.find((item) => item.snapshotId === select?.value);
+            renderUsdaRdControls(pull?.area?.county || 'Douglas');
+            renderSelectedSavedPull();
+        });
+
+        document.getElementById('btnVerifyUsdaLimitsGemini')?.addEventListener('click', async () => {
+            const resultBox = document.getElementById('usdaGeminiVerificationResult');
+            const btn = document.getElementById('btnVerifyUsdaLimitsGemini');
+            if (!resultBox || !btn) return;
+
+            const select = document.getElementById('savedPullSelect');
+            const pull = sharedSavedPulls.find((item) => item.snapshotId === select?.value);
+            const county = pull?.area?.county || 'Douglas';
+            const state = pull?.area?.state || 'OR';
+
+            btn.disabled = true;
+            btn.innerHTML = '<span>⏳ Searching Gemini Grounded Search…</span>';
+            resultBox.classList.remove('hidden');
+            resultBox.innerHTML = '<span class="text-slate-400">Verifying 2026 USDA Guaranteed Income limits for ' + escapeHtml(county) + ' County via Gemini Search…</span>';
+
+            try {
+                const resp = await fetch(`/api/usda-income-limits?county=${encodeURIComponent(county)}&state=${encodeURIComponent(state)}&verify=true`);
+                const data = await resp.json();
+                if (data.success && data.geminiSearchGroundingSummary) {
+                    resultBox.innerHTML = `<div class="font-semibold text-emerald-300">✅ 2026 USDA Grounded Search (${escapeHtml(county)} County):</div><div class="text-[10px] text-slate-300 mt-1 leading-normal whitespace-pre-wrap">${escapeHtml(data.geminiSearchGroundingSummary)}</div>`;
+                } else if (data.official2026Limits) {
+                    resultBox.innerHTML = `<div class="font-semibold text-emerald-300">✅ Official 2026 USDA Base (${escapeHtml(county)} County):</div><div class="text-[10px] text-slate-300 mt-1">1–4 Persons: ${formatFirstHomeDollars(data.official2026Limits.person1to4MaxAnnualIncome)} | 5–8 Persons: ${formatFirstHomeDollars(data.official2026Limits.person5to8MaxAnnualIncome)}</div>`;
+                } else {
+                    resultBox.innerHTML = `<span class="text-rose-300">⚠️ Search verification unavailable.</span>`;
+                }
+            } catch (err) {
+                resultBox.innerHTML = `<span class="text-rose-300">⚠️ Verification error: ${escapeHtml(err.message)}</span>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>🔍 Verify 2026 Limits via Gemini Search</span>';
+            }
+        });
 
         const lakeviewIncomeSlider = document.getElementById('lakeviewBorrowerIncome');
         if (lakeviewIncomeSlider) {

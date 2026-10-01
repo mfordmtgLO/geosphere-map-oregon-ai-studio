@@ -6,6 +6,7 @@ import rentcastHandler from './api/rentcast.js';
 import savedListingsHandler from './api/saved-listings.js';
 import mapSavedListingsHandler from './api/map-saved-listings.js';
 import tractsHandler from './api/tracts.js';
+import usdaIncomeLimitsHandler from './api/usda-income-limits.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,6 +52,7 @@ app.all('/api/rentcast', wrapHandler(rentcastHandler));
 app.all('/api/saved-listings', wrapHandler(savedListingsHandler));
 app.all('/api/map-saved-listings', wrapHandler(mapSavedListingsHandler));
 app.all('/api/tracts', wrapHandler(tractsHandler));
+app.all('/api/usda-income-limits', wrapHandler(usdaIncomeLimitsHandler));
 
 // Dev-adapter-only lead capture: in-memory, ephemeral (lost on restart),
 // capped at 100 entries. NOT a production PII store — do not use this for
