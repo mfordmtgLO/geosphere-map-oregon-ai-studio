@@ -1,7 +1,14 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, getDoc, setDoc, deleteDoc, updateDoc, increment, collection, getDocs } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, updateDoc, increment, collection, getDocs, setLogLevel } from 'firebase/firestore';
 import fs from 'fs';
 import path from 'path';
+
+// Mute internal Firestore info/warn gRPC channel messages in Node.js
+try {
+  setLogLevel('error');
+} catch (e) {
+  // Ignore
+}
 
 let firebaseConfig = null;
 try {
@@ -45,7 +52,7 @@ loadLocalStore();
 
 function isQuotaError(err) {
   const msg = String(err?.message || err || '');
-  return msg.includes('Quota limit exceeded') || msg.includes('resource-exhausted') || msg.includes('429');
+  return msg.includes('Quota limit exceeded') || msg.includes('resource-exhausted') || msg.includes('429') || msg.includes('CANCELLED') || msg.includes('Timed out');
 }
 
 export const kv = {
