@@ -14,8 +14,18 @@ const app = express();
 const PORT = 3000;
 
 // Middleware
+app.use((req, res, next) => {
+  res.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive, nosnippet, noimageindex');
+  next();
+});
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Serve robots.txt explicitly to prevent search indexing and AI scraping
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain');
+  res.sendFile(path.join(__dirname, 'robots.txt'));
+});
 
 // Health Check
 app.get('/api/health', (req, res) => {
@@ -42,16 +52,15 @@ app.all('/api/saved-listings', wrapHandler(savedListingsHandler));
 app.all('/api/map-saved-listings', wrapHandler(mapSavedListingsHandler));
 app.all('/api/tracts', wrapHandler(tractsHandler));
 
-// In-memory leads storage for /api/geosphere-lead-sync
+// Dev-adapter-only lead capture: in-memory, ephemeral (lost on restart),
+// capped at 100 entries. NOT a production PII store — do not use this for
+// real buyer data, and do not re-add a GET readback route here.
 const capturedLeads = [];
 app.post('/api/geosphere-lead-sync', (req, res) => {
   const lead = req.body;
   capturedLeads.unshift(lead);
   if (capturedLeads.length > 100) capturedLeads.pop();
   res.json({ status: 'success', count: capturedLeads.length });
-});
-app.get('/api/geosphere-lead-sync', (req, res) => {
-  res.json({ status: 'success', leads: capturedLeads });
 });
 
 // Serve static assets from project root

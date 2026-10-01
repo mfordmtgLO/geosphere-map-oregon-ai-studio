@@ -1,8 +1,40 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // The mock-kv shim (mock-kv/index.js) is a @vercel/kv-compatible layer that
+    // uses the Firebase CLIENT SDK (firebase/app + firebase/firestore, no
+    // auth/sign-in) against collection `kv_store`. Security rules therefore
+    // APPLY to the serverless functions' KV access — a deny-all here would
+    // break the snapshot read/write path, and Firestore "rules are not
+    // filters", so collection-wide read conditions are forbidden by design:
+    // kv.scan() issues an unconstrained getDocs() over the whole collection,
+    // which FAILS if read were conditioned per document ID.
+    //
+    // Reads: stay public. Listing snapshots are served publicly by product
+    // design (GET /api/saved-listings, GET /api/map-saved-listings), and
+    // scan()/mget()/get() all require unconditional collection/list reads.
+    //
+    // Writes: restricted to the exact key shapes the functions produce.
+    // Document IDs are encodeURIComponent(key), so ':' is stored as '%3A':
+    //   - listings:<area-slug>      -> listings%3Acoos-bay%3Aor (snapshots)
+    //   - rentcast:usage:YYYY-MM    -> rentcast%3Ausage%3A2026-09 (billing counter)
+    //   - <encoded-key>_chunk_<n>   -> chunk docs for values > ~1MB
+    // Single-document get/set/update/delete evaluate per-document rules
+    // cleanly; no function performs a collection-wide write or a write
+    // query, so keyed write conditions break nothing.
     match /kv_store/{document=**} {
-      allow read, write: if true;
+      allow read: if true;
+      allow create, update, delete: if
+        document.matches('listings%3A.*') ||
+        document.matches('rentcast%3Ausage%3A.*') ||
+        document.matches('.*_chunk_[0-9]+');
+    }
+
+    // Default deny: matches OR together, so this only bites where no
+    // preceding block allows access. Blocks all other collections and any
+    // kv_store key outside the shapes above.
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

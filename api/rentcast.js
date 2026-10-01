@@ -1,4 +1,5 @@
 // RENTCAST PROXY V14 - LIVE PULL + 500 LIMIT + 50 PULL BILLING CYCLE HARD STOP
+import { timingSafeEqual } from "node:crypto";
 import { kv } from '@vercel/kv';
 import { buildOverlaySets, buildProgramReviewSets } from './overlay-classification.js';
 import { getProgramReviewConfiguration } from './program-review-config.js';
@@ -6,6 +7,15 @@ import { getProgramReviewConfiguration } from './program-review-config.js';
 const CACHE_TTL_SECONDS = 30 * 24 * 60 * 60; // 30 days
 const MAX_MONTHLY_PULLS = 50;
 const BILLING_RESET_DAY = 6; // RentCast billing cycle renews on the 6th
+
+// Owner-only admin token gate (separate from GEOSPHERE_SYNC_TOKEN).
+// Fail closed: if RENTCAST_ADMIN_TOKEN is unset/empty, every request is denied.
+function tokenMatches(provided, expected) {
+    if (!provided || !expected) return false;
+    const actualBuffer = Buffer.from(provided);
+    const expectedBuffer = Buffer.from(expected);
+    return actualBuffer.length === expectedBuffer.length && timingSafeEqual(actualBuffer, expectedBuffer);
+}
 
 // Calculates the billing cycle key: e.g. "rentcast:usage:2026-09"
 function getCurrentBillingCycleKey() {
@@ -37,10 +47,16 @@ function getCacheKey(params) {
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-rentcast-admin-token');
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
+    }
+
+    // --- ADMIN AUTH GATE: every mode (live pull, get_usage, reset_usage, POST) requires
+    // the x-rentcast-admin-token header. Fails closed when RENTCAST_ADMIN_TOKEN is unset. ---
+    if (!tokenMatches(req.headers['x-rentcast-admin-token'], process.env.RENTCAST_ADMIN_TOKEN)) {
+        return res.status(401).json({ error: 'Unauthorized: valid x-rentcast-admin-token required.' });
     }
 
     const billingKey = getCurrentBillingCycleKey();
