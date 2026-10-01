@@ -113,6 +113,31 @@
             height: 16px;
             display: block;
         }
+
+        /* Dedicated On-Map Quick Spatial Zoom Controls */
+        .leaflet-control-quick-zoom {
+            margin-top: 12px !important;
+            margin-left: 12px !important;
+            z-index: 1000 !important;
+            pointer-events: auto !important;
+        }
+        @media (max-width: 767px) {
+            .leaflet-control-quick-zoom {
+                margin-top: 48px !important;
+                margin-left: 8px !important;
+                max-width: calc(100vw - 48px) !important;
+            }
+        }
+        .map-quick-zoom-widget select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e');
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.25em 1.25em;
+            padding-right: 2rem;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
     </style>
 </head>
 <body class="h-full flex flex-col overflow-hidden font-sans antialiased">
@@ -799,8 +824,343 @@ function setCachedResults(cacheKey, data) {
         
     
     
-    // --- 3. LOCAL DATA MATRIX DECLARATIONS ---
+    // --- 3. LOCAL DATA MATRIX DECLARATIONS & SPATIAL REGIONS ---
     let map, geoJsonLayer, markerGroup;
+    
+    const SPATIAL_REGIONS = {
+        states: {
+            'OR': {
+                fips: '41',
+                name: 'Oregon',
+                abbr: 'OR',
+                center: [44.00, -120.55],
+                zoom: 7,
+                counties: {
+                    'Baker': { name: 'Baker', center: [44.70, -117.68], zoom: 9, note: 'Baker City' },
+                    'Benton': { name: 'Benton', center: [44.49, -123.43], zoom: 10, note: 'Corvallis' },
+                    'Clackamas': { name: 'Clackamas', center: [45.19, -122.28], zoom: 10, note: 'Oregon City / Clackamas' },
+                    'Clatsop': { name: 'Clatsop', center: [46.00, -123.75], zoom: 10, note: 'Astoria' },
+                    'Columbia': { name: 'Columbia', center: [45.94, -123.08], zoom: 10, note: 'St. Helens' },
+                    'Coos': { name: 'Coos', center: [43.18, -124.18], zoom: 10, note: 'Coos Bay / North Bend' },
+                    'Crook': { name: 'Crook', center: [44.13, -120.36], zoom: 9, note: 'Prineville' },
+                    'Curry': { name: 'Curry', center: [42.46, -124.16], zoom: 10, note: 'Gold Beach' },
+                    'Deschutes': { name: 'Deschutes', center: [43.91, -121.23], zoom: 10, note: 'Bend / Redmond' },
+                    'Douglas': { name: 'Douglas', center: [43.29, -123.18], zoom: 9, note: 'Roseburg' },
+                    'Gilliam': { name: 'Gilliam', center: [45.38, -120.21], zoom: 9, note: 'Condon' },
+                    'Grant': { name: 'Grant', center: [44.43, -118.99], zoom: 9, note: 'John Day' },
+                    'Harney': { name: 'Harney', center: [43.15, -118.97], zoom: 8, note: 'Burns' },
+                    'Hood River': { name: 'Hood River', center: [45.52, -121.65], zoom: 10, note: 'Hood River' },
+                    'Jackson': { name: 'Jackson', center: [42.42, -122.75], zoom: 10, note: 'Medford / Ashland' },
+                    'Jefferson': { name: 'Jefferson', center: [44.63, -121.18], zoom: 10, note: 'Madras' },
+                    'Josephine': { name: 'Josephine', center: [42.36, -123.56], zoom: 10, note: 'Grants Pass' },
+                    'Klamath': { name: 'Klamath', center: [42.69, -121.65], zoom: 9, note: 'Klamath Falls' },
+                    'Lake': { name: 'Lake', center: [42.79, -120.39], zoom: 8, note: 'Lakeview' },
+                    'Lane': { name: 'Lane', center: [43.94, -122.84], zoom: 9, note: 'Eugene / Springfield' },
+                    'Lincoln': { name: 'Lincoln', center: [44.64, -123.91], zoom: 10, note: 'Newport / Lincoln City' },
+                    'Linn': { name: 'Linn', center: [44.49, -122.53], zoom: 10, note: 'Albany / Lebanon' },
+                    'Malheur': { name: 'Malheur', center: [43.41, -117.63], zoom: 8, note: 'Ontario' },
+                    'Marion': { name: 'Marion', center: [44.90, -122.58], zoom: 10, note: 'Salem / Keizer' },
+                    'Morrow': { name: 'Morrow', center: [45.42, -119.58], zoom: 9, note: 'Heppner / Boardman' },
+                    'Multnomah': { name: 'Multnomah', center: [45.54, -122.42], zoom: 11, note: 'Portland / Gresham' },
+                    'Polk': { name: 'Polk', center: [44.90, -123.31], zoom: 10, note: 'Dallas' },
+                    'Sherman': { name: 'Sherman', center: [45.42, -120.69], zoom: 9, note: 'Moro' },
+                    'Tillamook': { name: 'Tillamook', center: [45.46, -123.75], zoom: 10, note: 'Tillamook' },
+                    'Umatilla': { name: 'Umatilla', center: [45.60, -118.73], zoom: 9, note: 'Pendleton / Hermiston' },
+                    'Union': { name: 'Union', center: [45.34, -117.96], zoom: 10, note: 'La Grande' },
+                    'Wallowa': { name: 'Wallowa', center: [45.58, -117.18], zoom: 9, note: 'Enterprise' },
+                    'Wasco': { name: 'Wasco', center: [45.16, -121.16], zoom: 9, note: 'The Dalles' },
+                    'Washington': { name: 'Washington', center: [45.56, -123.00], zoom: 10, note: 'Hillsboro / Beaverton' },
+                    'Wheeler': { name: 'Wheeler', center: [44.73, -120.03], zoom: 9, note: 'Fossil' },
+                    'Yamhill': { name: 'Yamhill', center: [45.23, -123.31], zoom: 10, note: 'McMinnville / Newberg' }
+                }
+            },
+            'WA': {
+                fips: '53',
+                name: 'Washington',
+                abbr: 'WA',
+                center: [47.40, -120.50],
+                zoom: 7,
+                counties: {
+                    'King': { name: 'King', center: [47.55, -121.90], zoom: 10, note: 'Seattle / Bellevue' },
+                    'Pierce': { name: 'Pierce', center: [47.07, -122.14], zoom: 10, note: 'Tacoma' },
+                    'Snohomish': { name: 'Snohomish', center: [48.05, -121.72], zoom: 10, note: 'Everett' },
+                    'Spokane': { name: 'Spokane', center: [47.62, -117.40], zoom: 10, note: 'Spokane' },
+                    'Clark': { name: 'Clark', center: [45.77, -122.48], zoom: 10, note: 'Vancouver' },
+                    'Thurston': { name: 'Thurston', center: [46.93, -122.83], zoom: 10, note: 'Olympia' },
+                    'Whatcom': { name: 'Whatcom', center: [48.83, -122.12], zoom: 10, note: 'Bellingham' },
+                    'Yakima': { name: 'Yakima', center: [46.46, -120.74], zoom: 9, note: 'Yakima' },
+                    'Kitsap': { name: 'Kitsap', center: [47.64, -122.65], zoom: 10, note: 'Bremerton' },
+                    'Benton': { name: 'Benton', center: [46.24, -119.51], zoom: 10, note: 'Kennewick / Richland' },
+                    'Franklin': { name: 'Franklin', center: [46.54, -118.89], zoom: 10, note: 'Pasco' },
+                    'Chelan': { name: 'Chelan', center: [47.87, -120.62], zoom: 9, note: 'Wenatchee' },
+                    'Kittitas': { name: 'Kittitas', center: [47.12, -120.68], zoom: 9, note: 'Ellensburg' },
+                    'Cowlitz': { name: 'Cowlitz', center: [46.19, -122.68], zoom: 10, note: 'Longview' },
+                    'Skagit': { name: 'Skagit', center: [48.48, -121.80], zoom: 10, note: 'Mount Vernon' },
+                    'Island': { name: 'Island', center: [48.16, -122.57], zoom: 10, note: 'Oak Harbor' },
+                    'Clallam': { name: 'Clallam', center: [48.10, -123.90], zoom: 9, note: 'Port Angeles' },
+                    'Grays Harbor': { name: 'Grays Harbor', center: [47.15, -123.83], zoom: 9, note: 'Aberdeen' },
+                    'Lewis': { name: 'Lewis', center: [46.58, -122.40], zoom: 9, note: 'Centralia' },
+                    'Walla Walla': { name: 'Walla Walla', center: [46.23, -118.48], zoom: 10, note: 'Walla Walla' },
+                    'Grant': { name: 'Grant', center: [47.21, -119.47], zoom: 9, note: 'Moses Lake' }
+                }
+            },
+            'CA': {
+                fips: '06',
+                name: 'California',
+                abbr: 'CA',
+                center: [37.18, -119.45],
+                zoom: 6,
+                counties: {
+                    'Los Angeles': { name: 'Los Angeles', center: [34.05, -118.24], zoom: 10, note: 'LA Metro' },
+                    'San Francisco': { name: 'San Francisco', center: [37.77, -122.42], zoom: 12, note: 'San Francisco' },
+                    'Alameda': { name: 'Alameda', center: [37.65, -121.92], zoom: 10, note: 'Oakland / Berkeley' },
+                    'Santa Clara': { name: 'Santa Clara', center: [37.23, -121.69], zoom: 10, note: 'San Jose / Silicon Valley' },
+                    'San Diego': { name: 'San Diego', center: [33.03, -116.73], zoom: 9, note: 'San Diego' },
+                    'Orange': { name: 'Orange', center: [33.72, -117.78], zoom: 10, note: 'Anaheim / Irvine' },
+                    'Sacramento': { name: 'Sacramento', center: [38.45, -121.34], zoom: 10, note: 'Sacramento' },
+                    'Contra Costa': { name: 'Contra Costa', center: [37.92, -121.95], zoom: 10, note: 'Walnut Creek' },
+                    'San Mateo': { name: 'San Mateo', center: [37.43, -122.31], zoom: 10, note: 'San Mateo' },
+                    'Riverside': { name: 'Riverside', center: [33.74, -115.99], zoom: 8, note: 'Riverside / Palm Springs' },
+                    'San Bernardino': { name: 'San Bernardino', center: [34.84, -116.18], zoom: 8, note: 'San Bernardino' },
+                    'Fresno': { name: 'Fresno', center: [36.75, -119.65], zoom: 9, note: 'Fresno' }
+                }
+            },
+            'ID': {
+                fips: '16',
+                name: 'Idaho',
+                abbr: 'ID',
+                center: [44.35, -114.60],
+                zoom: 6,
+                counties: {
+                    'Ada': { name: 'Ada', center: [43.45, -116.24], zoom: 10, note: 'Boise / Meridian' },
+                    'Canyon': { name: 'Canyon', center: [43.64, -116.71], zoom: 10, note: 'Nampa / Caldwell' },
+                    'Kootenai': { name: 'Kootenai', center: [47.68, -116.70], zoom: 10, note: 'Coeur d’Alene' },
+                    'Bonneville': { name: 'Bonneville', center: [43.44, -111.60], zoom: 9, note: 'Idaho Falls' },
+                    'Twin Falls': { name: 'Twin Falls', center: [42.36, -114.66], zoom: 9, note: 'Twin Falls' },
+                    'Bannock': { name: 'Bannock', center: [42.67, -112.22], zoom: 10, note: 'Pocatello' },
+                    'Bonner': { name: 'Bonner', center: [48.30, -116.60], zoom: 9, note: 'Sandpoint' },
+                    'Latah': { name: 'Latah', center: [46.81, -116.71], zoom: 10, note: 'Moscow' },
+                    'Nez Perce': { name: 'Nez Perce', center: [46.33, -116.75], zoom: 10, note: 'Lewiston' },
+                    'Blaine': { name: 'Blaine', center: [43.55, -114.15], zoom: 9, note: 'Sun Valley / Ketchum' }
+                }
+            }
+        },
+        regions: {
+            'PNW': {
+                name: 'Pacific Northwest Overview',
+                center: [45.5, -120.5],
+                zoom: 6
+            }
+        }
+    };
+
+    let currentActiveZoomState = 'OR';
+
+    function showMapToast(message) {
+        let toast = document.getElementById('mapSpatialToast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'mapSpatialToast';
+            toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 z-[2000] px-4 py-2 rounded-xl bg-slate-900/95 border border-indigo-500/40 text-slate-100 text-xs font-semibold shadow-2xl backdrop-blur-md pointer-events-none transition-all duration-300 opacity-0 transform translate-y-2';
+            document.body.appendChild(toast);
+        }
+        toast.textContent = message;
+        toast.classList.remove('opacity-0', 'translate-y-2');
+        toast.classList.add('opacity-100', 'translate-y-0');
+        
+        clearTimeout(window._mapToastTimer);
+        window._mapToastTimer = setTimeout(() => {
+            toast.classList.remove('opacity-100', 'translate-y-0');
+            toast.classList.add('opacity-0', 'translate-y-2');
+        }, 2500);
+    }
+
+    function updateQuickZoomActiveState(stateAbbr) {
+        currentActiveZoomState = stateAbbr;
+        const buttons = document.querySelectorAll('.quick-state-btn');
+        buttons.forEach(btn => {
+            const isMatch = btn.dataset.zoomState === stateAbbr;
+            btn.className = isMatch 
+                ? 'quick-state-btn px-1.5 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow hover:bg-indigo-500 transition text-center'
+                : 'quick-state-btn px-1.5 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition text-center';
+        });
+
+        const label = document.getElementById('activeStateLabel');
+        const collapsedBadge = document.getElementById('collapsedStateBadge');
+        if (stateAbbr === 'PNW') {
+            if (label) label.textContent = 'Pacific NW';
+            if (collapsedBadge) collapsedBadge.textContent = 'PNW';
+        } else {
+            const stateData = SPATIAL_REGIONS.states[stateAbbr];
+            if (label && stateData) label.textContent = `${stateData.name} (${stateData.abbr})`;
+            if (collapsedBadge) collapsedBadge.textContent = stateAbbr;
+        }
+    }
+
+    function populateCountyOptions(stateAbbr) {
+        const stateData = SPATIAL_REGIONS.states[stateAbbr];
+        const mapSelect = document.getElementById('mapQuickCountySelect');
+        const sidebarSelect = document.getElementById('countySelect');
+        const badge = document.getElementById('countyCountBadge');
+        
+        if (!stateData) {
+            if (badge) badge.textContent = 'Multi-State';
+            if (mapSelect) mapSelect.innerHTML = '<option value="all">🗺️ Multi-State Region Overview</option>';
+            return;
+        }
+        
+        const countyEntries = Object.entries(stateData.counties);
+        if (badge) badge.textContent = `${countyEntries.length} counties`;
+        
+        const defaultLabel = `All ${stateData.name} Counties (Overview)`;
+        
+        // Populate Map Quick Selector
+        if (mapSelect) {
+            let optionsHtml = `<option value="all">🗺️ ${defaultLabel}</option>`;
+            countyEntries.forEach(([key, c]) => {
+                const note = c.note ? ` · ${c.note}` : '';
+                optionsHtml += `<option value="${escapeHtml(key)}">${escapeHtml(c.name)} County${escapeHtml(note)}</option>`;
+            });
+            mapSelect.innerHTML = optionsHtml;
+        }
+        
+        // Populate Sidebar County Demarcation Selector
+        if (sidebarSelect) {
+            let optionsHtml = `<option value="all">${defaultLabel}</option>`;
+            countyEntries.forEach(([key, c]) => {
+                const note = c.note ? ` (${c.note})` : '';
+                optionsHtml += `<option value="${escapeHtml(key)}">${escapeHtml(c.name)} County${escapeHtml(note)}</option>`;
+            });
+            sidebarSelect.innerHTML = optionsHtml;
+        }
+    }
+
+    function zoomToState(stateAbbr, userInitiated = true) {
+        if (stateAbbr === 'PNW') {
+            const pnw = SPATIAL_REGIONS.regions.PNW;
+            if (map) map.flyTo(pnw.center, pnw.zoom, { duration: 1.2 });
+            updateQuickZoomActiveState('PNW');
+            populateCountyOptions('PNW');
+            if (userInitiated) showMapToast('🗺️ Zoomed to Pacific Northwest Overview');
+            return;
+        }
+        
+        const stateData = SPATIAL_REGIONS.states[stateAbbr];
+        if (!stateData) return;
+        
+        // Update sidebar select if present
+        const stateSelect = document.getElementById('stateSelect');
+        if (stateSelect && stateSelect.value !== stateData.fips) {
+            stateSelect.value = stateData.fips;
+        }
+        
+        if (map) {
+            map.flyTo(stateData.center, stateData.zoom, { duration: 1.2 });
+        }
+        
+        updateQuickZoomActiveState(stateAbbr);
+        populateCountyOptions(stateAbbr);
+        
+        if (usdaDataLoaded && document.getElementById('toggleUSDA')?.checked) {
+            renderUSDAAreas();
+        }
+        
+        if (userInitiated) {
+            showMapToast(`🌲 Zoomed to ${stateData.name} (${stateData.abbr}) View`);
+        }
+    }
+
+    function zoomToCounty(countyName, stateAbbr = null) {
+        if (!countyName || countyName === 'all') {
+            const activeState = stateAbbr || currentActiveZoomState;
+            zoomToState(activeState, false);
+            const stateName = SPATIAL_REGIONS.states[activeState]?.name || activeState;
+            showMapToast(`🗺️ Overview: All ${stateName} Counties`);
+            return;
+        }
+        
+        const activeState = stateAbbr || (currentActiveZoomState === 'PNW' ? 'OR' : currentActiveZoomState);
+        const stateData = SPATIAL_REGIONS.states[activeState];
+        if (!stateData) return;
+        
+        const cleanCountyName = String(countyName).replace(/\s+County/i, '').trim();
+        const countyData = stateData.counties[cleanCountyName] || 
+            Object.values(stateData.counties).find(c => c.name.toLowerCase() === cleanCountyName.toLowerCase());
+        
+        if (countyData && map) {
+            map.flyTo(countyData.center, countyData.zoom, { duration: 1.2 });
+            
+            const mapCountySelect = document.getElementById('mapQuickCountySelect');
+            const sidebarCountySelect = document.getElementById('countySelect');
+            if (mapCountySelect && mapCountySelect.value !== cleanCountyName) mapCountySelect.value = cleanCountyName;
+            if (sidebarCountySelect && sidebarCountySelect.value !== cleanCountyName) sidebarCountySelect.value = cleanCountyName;
+            
+            const noteText = countyData.note ? ` (${countyData.note})` : '';
+            showMapToast(`📍 Zoomed to ${countyData.name} County${noteText}, ${activeState}`);
+        }
+    }
+
+    function zoomToPresetLevel(zoomLevel) {
+        if (!map) return;
+        const currentCenter = map.getCenter();
+        const levelNames = { 7: 'State', 10: 'County', 13: 'Tract / Neighborhood', 16: 'Street' };
+        map.flyTo(currentCenter, zoomLevel, { duration: 0.8 });
+        showMapToast(`🔍 Zoom Level: ${levelNames[zoomLevel] || zoomLevel} Scale (z${zoomLevel})`);
+    }
+
+    const AUTO_FIT_STORAGE_KEY = 'geosphere_auto_fit_bounds';
+
+    function isAutoFitBoundsEnabled() {
+        try {
+            const stored = localStorage.getItem(AUTO_FIT_STORAGE_KEY);
+            return stored === null ? true : stored === 'true';
+        } catch (e) {
+            return true;
+        }
+    }
+
+    function setAutoFitBoundsEnabled(enabled) {
+        try {
+            localStorage.setItem(AUTO_FIT_STORAGE_KEY, String(enabled));
+        } catch (e) {}
+        const toggle = document.getElementById('toggleAutoFitBounds');
+        const statusPill = document.getElementById('autoFitStatusPill');
+        if (toggle) toggle.checked = enabled;
+        if (statusPill) {
+            statusPill.textContent = enabled ? 'Active' : 'Off';
+            statusPill.className = enabled 
+                ? 'text-[9px] font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                : 'text-[9px] font-semibold px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700';
+        }
+    }
+
+    function fitAllListingMarkers(showToast = true) {
+        if (window.listingMarkers && typeof window.listingMarkers.getLayers === 'function' && window.listingMarkers.getLayers().length > 0) {
+            const bounds = window.listingMarkers.getBounds();
+            if (bounds && bounds.isValid()) {
+                map.flyToBounds(bounds, { padding: [50, 50], maxZoom: 15, duration: 1.2 });
+                if (showToast) {
+                    showMapToast(`🎯 Auto-fitted ${window.listingMarkers.getLayers().length} property listings`);
+                }
+                return true;
+            }
+        }
+        if (showToast) {
+            showMapToast(`ℹ️ No active property listings on map to fit`);
+        }
+        return false;
+    }
+
+    function resetMapView() {
+        map.flyTo([44.0521, -123.0867], 13, { duration: 1.0 });
+        updateQuickZoomActiveState('OR');
+        populateCountyOptions('OR');
+        const mapCountySelect = document.getElementById('mapQuickCountySelect');
+        const sidebarCountySelect = document.getElementById('countySelect');
+        if (mapCountySelect) mapCountySelect.value = 'all';
+        if (sidebarCountySelect) sidebarCountySelect.value = 'all';
+        showMapToast(`🔄 Reset Map View`);
+    }
     
     const appState = {
         leads: [
@@ -954,7 +1314,102 @@ function setCachedResults(cacheKey, data) {
             maxZoom: 19
         }).addTo(map);
 
+        // Dedicated On-Map Quick Spatial Zoom Control Widget
+        const quickZoomControl = L.control({ position: 'topleft' });
+        quickZoomControl.onAdd = function() {
+            const container = L.DomUtil.create('div', 'leaflet-control-quick-zoom');
+            container.innerHTML = `
+                <div id="mapQuickZoomWidget" class="map-quick-zoom-widget bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-2xl p-2.5 shadow-2xl text-slate-200 w-72 sm:w-80 transition-all duration-200">
+                    <div class="flex items-center justify-between gap-2 pb-1.5 border-b border-slate-800">
+                        <div class="flex items-center space-x-1.5 text-xs font-bold uppercase tracking-wider text-indigo-300">
+                            <svg class="w-3.5 h-3.5 text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path></svg>
+                            <span class="truncate">Quick Spatial Zoom</span>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <button id="btnQuickZoomToggleCollapse" type="button" class="text-slate-400 hover:text-white p-0.5 rounded transition text-xs flex items-center justify-center h-5 w-5" title="Toggle Zoom Controls">
+                                <span id="quickZoomChevron">▾</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="quickZoomBody" class="space-y-2 mt-2">
+                        <!-- State Zoom Quick Buttons -->
+                        <div>
+                            <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1 flex items-center justify-between">
+                                <span>State Quick View</span>
+                                <span id="activeStateLabel" class="text-[10px] text-indigo-400 font-bold">Oregon (OR)</span>
+                            </div>
+                            <div class="grid grid-cols-5 gap-1" id="quickStateButtons">
+                                <button type="button" data-zoom-state="OR" class="quick-state-btn px-1.5 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow hover:bg-indigo-500 transition text-center" title="Zoom to Oregon">OR</button>
+                                <button type="button" data-zoom-state="WA" class="quick-state-btn px-1.5 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition text-center" title="Zoom to Washington">WA</button>
+                                <button type="button" data-zoom-state="CA" class="quick-state-btn px-1.5 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition text-center" title="Zoom to California">CA</button>
+                                <button type="button" data-zoom-state="ID" class="quick-state-btn px-1.5 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition text-center" title="Zoom to Idaho">ID</button>
+                                <button type="button" data-zoom-state="PNW" class="quick-state-btn px-1.5 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition text-center" title="Zoom to Pacific Northwest Overview">PNW</button>
+                            </div>
+                        </div>
+
+                        <!-- County Quick Zoom Selector -->
+                        <div>
+                            <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1 flex items-center justify-between">
+                                <span>County Demarcation View</span>
+                                <span id="countyCountBadge" class="text-[10px] text-slate-500">36 counties</span>
+                            </div>
+                            <select id="mapQuickCountySelect" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-xs text-slate-200 outline-none focus:border-indigo-500 transition shadow-inner">
+                                <option value="all">🗺️ All Oregon Counties (Overview)</option>
+                            </select>
+                        </div>
+
+                        <!-- Zoom Elevation Level Presets -->
+                        <div class="pt-1.5 border-t border-slate-800/80 flex items-center justify-between gap-1 text-[10px]">
+                            <span class="text-slate-400 font-medium">Elevation:</span>
+                            <div class="flex items-center gap-1">
+                                <button type="button" data-zoom-level="7" class="quick-level-btn px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition" title="State Scale (z7)">State</button>
+                                <button type="button" data-zoom-level="10" class="quick-level-btn px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition" title="County Scale (z10)">County</button>
+                                <button type="button" data-zoom-level="13" class="quick-level-btn px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition" title="Tract Scale (z13)">Tract</button>
+                                <button type="button" data-zoom-level="16" class="quick-level-btn px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition" title="Street Scale (z16)">Street</button>
+                            </div>
+                        </div>
+
+                        <!-- Fit Listings & Reset View Actions -->
+                        <div class="flex items-center gap-1.5 pt-1">
+                            <button id="btnMapFitListings" type="button" class="flex-1 rounded-lg bg-indigo-950/70 border border-indigo-700/60 hover:bg-indigo-900/80 px-2 py-1.5 text-[11px] font-semibold text-indigo-300 hover:text-indigo-200 transition text-center flex items-center justify-center space-x-1 shadow-sm">
+                                <span>🎯 Fit Listings</span>
+                            </button>
+                            <button id="btnMapResetView" type="button" class="flex-1 rounded-lg bg-slate-800 hover:bg-slate-700 px-2 py-1.5 text-[11px] font-semibold text-slate-300 hover:text-white transition text-center flex items-center justify-center space-x-1 shadow-sm">
+                                <span>🔄 Reset View</span>
+                            </button>
+                        </div>
+
+                        <!-- Auto-fit Bounds Toggle on Map Load / Search -->
+                        <div class="pt-1.5 border-t border-slate-800/80 flex items-center justify-between">
+                            <label for="toggleAutoFitBounds" class="flex items-center space-x-2 cursor-pointer group select-none">
+                                <input type="checkbox" id="toggleAutoFitBounds" class="rounded border-slate-700 bg-slate-950 text-indigo-500 focus:ring-indigo-500/30 h-3.5 w-3.5 cursor-pointer">
+                                <span class="text-[11px] font-medium text-slate-300 group-hover:text-white transition">Auto-fit search bounds</span>
+                            </label>
+                            <span id="autoFitStatusPill" class="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Active</span>
+                        </div>
+                    </div>
+
+                    <!-- Collapsed state view -->
+                    <div id="quickZoomCollapsedBar" class="hidden flex items-center justify-between py-0.5 cursor-pointer">
+                        <div class="flex items-center space-x-1.5">
+                            <span class="text-xs">🧭</span>
+                            <span class="text-xs font-bold text-indigo-300">Quick Zoom</span>
+                        </div>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-900/60 text-indigo-300 font-mono font-bold" id="collapsedStateBadge">OR</span>
+                    </div>
+                </div>
+            `;
+
+            L.DomEvent.disableClickPropagation(container);
+            L.DomEvent.disableScrollPropagation(container);
+            return container;
+        };
+        quickZoomControl.addTo(map);
+
         markerGroup = L.layerGroup().addTo(map);
+        populateCountyOptions('OR');
+        updateQuickZoomActiveState('OR');
         renderSpatialLayers();
     }
 
@@ -2026,10 +2481,9 @@ async function loadFirstHomeLimits() {
         });
         
         try {
-            if (listings.length > 0 && window.listingMarkers && window.listingMarkers.getLayers() && window.listingMarkers.getLayers().length > 0) {
-                const bounds = window.listingMarkers.getBounds();
-                if (bounds && bounds.isValid()) {
-                    map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
+            if (listings.length > 0 && window.listingMarkers && typeof window.listingMarkers.getLayers === 'function' && window.listingMarkers.getLayers().length > 0) {
+                if (isAutoFitBoundsEnabled()) {
+                    fitAllListingMarkers(false);
                 }
             }
         } catch (e) {
@@ -2153,11 +2607,77 @@ async function loadFirstHomeLimits() {
         document.getElementById('toggleLakeview')?.addEventListener('change', (e) => {
             toggleLakeviewLayer(e.target.checked);
         });
-        document.getElementById('stateSelect').addEventListener('change', () => {
+        document.getElementById('stateSelect').addEventListener('change', (e) => {
+            const stateAbbr = getSelectedState();
+            zoomToState(stateAbbr, false);
             if (usdaDataLoaded && document.getElementById('toggleUSDA').checked) {
                 renderUSDAAreas();
             }
         });
+        document.getElementById('countySelect')?.addEventListener('change', (e) => {
+            zoomToCounty(e.target.value);
+        });
+
+        // Dedicated Map Quick Zoom Widget Event Listeners
+        document.querySelectorAll('.quick-state-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const stateAbbr = e.currentTarget.dataset.zoomState;
+                zoomToState(stateAbbr, true);
+            });
+        });
+
+        document.getElementById('mapQuickCountySelect')?.addEventListener('change', (e) => {
+            zoomToCounty(e.target.value);
+        });
+
+        document.querySelectorAll('.quick-level-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const level = Number(e.currentTarget.dataset.zoomLevel);
+                zoomToPresetLevel(level);
+            });
+        });
+
+        document.getElementById('btnMapFitListings')?.addEventListener('click', () => fitAllListingMarkers(true));
+        document.getElementById('btnMapResetView')?.addEventListener('click', resetMapView);
+
+        // Auto-fit Bounds toggle initialization and event binding
+        const autoFitCheckbox = document.getElementById('toggleAutoFitBounds');
+        if (autoFitCheckbox) {
+            autoFitCheckbox.checked = isAutoFitBoundsEnabled();
+            setAutoFitBoundsEnabled(autoFitCheckbox.checked);
+            autoFitCheckbox.addEventListener('change', (e) => {
+                const checked = e.target.checked;
+                setAutoFitBoundsEnabled(checked);
+                showMapToast(checked ? '🎯 Auto-fit Bounds enabled for new results' : '⏸️ Auto-fit Bounds disabled');
+                if (checked) {
+                    fitAllListingMarkers(false);
+                }
+            });
+        }
+
+        const quickZoomWidget = document.getElementById('mapQuickZoomWidget');
+        const quickZoomBody = document.getElementById('quickZoomBody');
+        const quickZoomCollapsedBar = document.getElementById('quickZoomCollapsedBar');
+        const quickZoomChevron = document.getElementById('quickZoomChevron');
+
+        function toggleQuickZoomCollapse() {
+            if (!quickZoomBody || !quickZoomCollapsedBar) return;
+            const isCollapsed = quickZoomBody.classList.contains('hidden');
+            if (isCollapsed) {
+                quickZoomBody.classList.remove('hidden');
+                quickZoomCollapsedBar.classList.add('hidden');
+                if (quickZoomChevron) quickZoomChevron.textContent = '▾';
+                if (quickZoomWidget) quickZoomWidget.className = 'map-quick-zoom-widget bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-2xl p-2.5 shadow-2xl text-slate-200 w-72 sm:w-80 transition-all duration-200';
+            } else {
+                quickZoomBody.classList.add('hidden');
+                quickZoomCollapsedBar.classList.remove('hidden');
+                if (quickZoomChevron) quickZoomChevron.textContent = '▸';
+                if (quickZoomWidget) quickZoomWidget.className = 'map-quick-zoom-widget bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-xl px-2.5 py-1.5 shadow-2xl text-slate-200 w-auto transition-all duration-200';
+            }
+        }
+
+        document.getElementById('btnQuickZoomToggleCollapse')?.addEventListener('click', toggleQuickZoomCollapse);
+        quickZoomCollapsedBar?.addEventListener('click', toggleQuickZoomCollapse);
         document.getElementById('btnClearListings').addEventListener('click', function() {
     if (window.listingMarkers) {
         map.removeLayer(window.listingMarkers);
