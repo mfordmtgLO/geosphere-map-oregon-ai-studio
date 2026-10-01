@@ -2678,6 +2678,86 @@ async function loadFirstHomeLimits() {
         return `${label} — ${pull.count || pull.overlaySets?.all?.length || 0} listings (${when})`;
     }
 
+    function centerMapOnSavedPullCity(pull) {
+        if (!pull || !map) return;
+        
+        const area = pull.area || {};
+        const cityName = area.city;
+        const stateName = area.state || getSelectedState() || 'OR';
+
+        // 1. Calculate center navigation point of all listings in this saved pull
+        const allListings = pull.overlaySets?.all || [];
+        let sumLat = 0, sumLng = 0, count = 0;
+        
+        allListings.forEach(l => {
+            const lat = Number(l.latitude);
+            const lng = Number(l.longitude);
+            if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+                sumLat += lat;
+                sumLng += lng;
+                count++;
+            }
+        });
+
+        if (count > 0) {
+            const centerLat = sumLat / count;
+            const centerLng = sumLng / count;
+            
+            // Fly smoothly to the center navigation point of the city listings
+            map.flyTo([centerLat, centerLng], 12, { duration: 1.0 });
+            
+            // Update Target Coordinates input field
+            const coordsInput = document.getElementById('formCoords');
+            if (coordsInput) {
+                coordsInput.value = centerLat.toFixed(4) + ", " + centerLng.toFixed(4);
+            }
+            
+            // Place selection pin marker at city center
+            if (window.markerGroup) {
+                markerGroup.clearLayers();
+                L.marker([centerLat, centerLng]).addTo(markerGroup)
+                    .on('click', () => { window.highlightTractForMarker(centerLng, centerLat); })
+                    .bindPopup('<span class="text-xs font-mono text-slate-900">📍 ' + (cityName ? escapeHtml(cityName) + ' Center' : 'Area Center') + ': ' + centerLat.toFixed(4) + ', ' + centerLng.toFixed(4) + '</span>')
+                    .openPopup();
+            }
+            
+            // Resolve Census Tract ID for city center
+            fetchCensusTractDataApi(centerLat, centerLng);
+        }
+        
+        // 2. Geocode city name to refine to official city center navigation point
+        if (cityName) {
+            const queryText = [cityName, area.county, area.zipCode, stateName].filter(Boolean).join(', ');
+            const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(queryText)}&limit=1`;
+            fetch(geocodeUrl)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        const cityLat = parseFloat(data[0].lat);
+                        const cityLng = parseFloat(data[0].lon);
+                        if (!isNaN(cityLat) && !isNaN(cityLng)) {
+                            map.flyTo([cityLat, cityLng], 12, { duration: 0.8 });
+                            const coordsInput = document.getElementById('formCoords');
+                            if (coordsInput) {
+                                coordsInput.value = cityLat.toFixed(4) + ", " + cityLng.toFixed(4);
+                            }
+                            if (window.markerGroup) {
+                                markerGroup.clearLayers();
+                                L.marker([cityLat, cityLng]).addTo(markerGroup)
+                                    .on('click', () => { window.highlightTractForMarker(cityLng, cityLat); })
+                                    .bindPopup('<span class="text-xs font-mono text-slate-900">📍 ' + escapeHtml(cityName) + ' City Center: ' + cityLat.toFixed(4) + ', ' + cityLng.toFixed(4) + '</span>')
+                                    .openPopup();
+                            }
+                            fetchCensusTractDataApi(cityLat, cityLng);
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.warn('City center geocoding refinement skipped:', err);
+                });
+        }
+    }
+
     function renderSelectedSavedPull() {
         const select = document.getElementById('savedPullSelect');
         const overlay = document.getElementById('savedOverlaySelect').value;
@@ -2698,6 +2778,9 @@ async function loadFirstHomeLimits() {
         tractField.value = `${listings.length} saved ${overlayLabel} listings`;
         status.textContent = `Showing ${listings.length} ${overlayLabel} listings from ${formatSavedPullLabel(pull)}. Cache-only — no Rentcast call.`;
         displayListingsOnMap(listings);
+
+        // Auto-center & zoom map to center navigation point of selected city
+        centerMapOnSavedPullCity(pull);
     }
 
     async function loadSharedSavedPulls() {
