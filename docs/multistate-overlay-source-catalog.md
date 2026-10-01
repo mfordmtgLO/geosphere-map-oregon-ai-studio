@@ -51,12 +51,12 @@ CalHFA states that, effective June 1, 2020, it no longer has general sales-price
 
 The USDA property-eligibility map can be used as a geographic review source only if GeoSphere captures the official area data or applies an address-level result with an observed source date. USDA expressly states that its map is not a final property-eligibility determination; final determination is made after a complete application. The current static Oregon USDA boundary data must therefore be replaced with a source-versioned, state-specific adapter before Washington, Idaho, or California results are represented.
 
-The FFIEC 2026 Census Tract List covers all U.S. census tracts and includes each tract’s income level. However, FFIEC states that its data supports HMDA and CRA analysis and may be unsuitable for other analytical purposes. GeoSphere may continue to describe this as an **FFIEC LMI context overlay** rather than call a listing or borrower eligible for a lending program. The 2026 tract list is stated to be identical to the 2025 tract list; source version and tract-boundary year must be recorded for every state adapter.
+The FFIEC 2026 Census Tract List covers all U.S. census tracts and includes each tract’s income level. However, FFIEC states that its data supports HMDA analysis and may be unsuitable for other analytical purposes. GeoSphere may continue to describe this as an **FFIEC LMI context overlay** rather than call a listing or borrower eligible for a lending program. The 2026 tract list is stated to be identical to the 2025 tract list; source version and tract-boundary year must be recorded for every state adapter.
 
 | Data family | Official source | GeoSphere use | Mandatory limitation |
 |---|---|---|---|
 | USDA Single Family Property Eligibility | [USDA Eligibility Map](https://eligibility.sc.egov.usda.gov/eligibility/welcomeAction.do?pageAction=sfp) | Geographic context after state data is sourced and versioned | USDA, not GeoSphere, makes the final property determination. |
-| FFIEC Census Tract List | [2026 FFIEC Tract List](https://www.ffiec.gov/sites/default/files/data/census/CensusTractList2026.xlsx) | LMI context by tract for all supported states | Use as HMDA/CRA geographic context only; never a program eligibility result. |
+| FFIEC Census Tract List | [2026 FFIEC Tract List](https://www.ffiec.gov/sites/default/files/data/census/CensusTractList2026.xlsx) | LMI context by tract for all supported states | Use as HMDA geographic LMI context only; never a program eligibility result. |
 
 ## Implementation governance contract
 

@@ -47,7 +47,7 @@
 ---
 
 ### 💡 Operational Best Practices & Tips
-* **Census Tract Resolution:** Ensure a location on the map is clicked or searched prior to submission so the FFIEC Census Tract ID is properly resolved for LMI / CRA compliance tracking.
+* **Census Tract Resolution:** Ensure a location on the map is clicked or searched prior to submission so the FFIEC Census Tract ID is properly resolved for FFIEC LMI tract spatial tracking.
 * **Real-Time Data Refresh:** Capturing a lead automatically updates the live lead counter and table logs without requiring a page refresh.
 * **Integrations:** Synchronized lead payloads can be routed to enterprise CRM webhooks (HubSpot, Salesforce, Total Expert, Encompass) via `/api/geosphere-lead-sync`.
 

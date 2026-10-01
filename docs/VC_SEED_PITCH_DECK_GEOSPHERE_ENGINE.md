@@ -1,24 +1,24 @@
 # GeoSphere Engine — VC / Seed Investment Pitch Deck
-## Spatial Intelligence & AI Sync Hub for the $1.8 Trillion First-Time Homebuyer & CRA Mortgage Market
+## Spatial Intelligence & AI Sync Hub for First-Time Homebuyer & Down Payment Assistance Mortgage Programs
 
 ---
 
 ### 🚀 Slide 1: Executive Summary & Title
 * **Company Name:** GeoSphere Engine (by Vantage AI Studio)
-* **Tagline:** Unlocking $1.8T in First-Time Homebuyer Volume through Spatial Intelligence, Automated Program Matching & Co-Branded Lead Retention.
+* **Tagline:** Unlocking First-Time Homebuyer Volume through Spatial Intelligence, Automated Loan Program Matching & Co-Branded Lead Retention.
 * **Founder & Architect:** Mike Ford (Founder, Mortgage Product Specialist & Lead Architect)
 * **Investment Stage:** Seed Round ($3.0 Million)
 * **Target Contact:** `fordmj@gmail.com`
 
-> **The Elevator Pitch:** GeoSphere Engine bridges the gap between complex government affordable mortgage overlays (USDA RD 100% financing, State Bond DPAs, FFIEC LMI CRA credits, FHFA caps) and live MLS property listings. We provide Loan Officers and Real Estate Agents with an interactive spatial map portal that automatically matches homes to qualifying low-and-no-down-payment loans, syncs leads into CRMs with program tags intact, and keeps buyers engaged with co-branded cards and Vantage AI 2nd Brain nudges.
+> **The Elevator Pitch:** GeoSphere Engine bridges the gap between complex government affordable mortgage overlays (USDA RD 100% financing, State Bond DPAs, FFIEC LMI tract boundaries, FHFA county caps) and live MLS property listings. We provide Loan Officers and Real Estate Agents with an interactive spatial map portal that automatically matches homes to qualifying low-and-no-down-payment loans, syncs leads into CRMs with program tags intact, and keeps buyers engaged with co-branded cards and Vantage AI 2nd Brain nudges.
 
 ---
 
-### ⚠️ Slide 2: The Problem ($1.8T Mortgage & Homebuyer Friction)
-1. **Hidden Eligibility:** Over 84% of first-time homebuyers qualify for low or zero down payment mortgage programs (USDA RD 100% financing, State Bond DPAs, FFIEC LMI CRA credits), but **92% have zero visibility** into which physical homes in their market actually qualify.
+### ⚠️ Slide 2: The Problem (First-Time Homebuyer & Mortgage Friction)
+1. **Hidden Eligibility:** Over 84% of first-time homebuyers qualify for low or zero down payment mortgage programs (USDA RD 100% financing, State Bond DPAs, FFIEC LMI census tract overlays), but **92% have zero visibility** into which physical homes in their market actually qualify.
 2. **Manual Loan Officer Grind:** Loan Officers spend 15+ hours every week manually cross-referencing MLS listing addresses against complex county price limits, Area Median Income (AMI) thresholds, and census tract shapefiles.
 3. **Severe Lead Leakage:** Traditional mortgage CRMs send generic listing links or Zillow URLs where prospective buyers get poached by competing lenders and listing agents.
-4. **CRA Compliance Pressure:** Regional banks and credit unions struggle to track and verify Community Reinvestment Act (CRA) lending distribution in Low-to-Moderate Income (LMI) census tracts.
+4. **Program Complexity:** Navigating state-by-state bond rules, county caps, and property eligibility overlays creates confusion for buyers, agents, and lenders alike.
 
 ---
 
@@ -42,7 +42,7 @@
 * **TAM (Total Addressable Market): $1.8 Trillion**
   * Annual U.S. residential purchase mortgage origination market (~4.2 Million annual first-time homebuyer transactions).
 * **SAM (Serviceable Addressable Market): $180 Billion**
-  * Affordable, Down Payment Assistance (DPA), and CRA-eligible purchase volume handled by 1,200+ Regional Banks, Credit Unions, and Independent Mortgage Bankers (IMBs).
+  * Affordable and Down Payment Assistance (DPA) purchase volume handled by Regional Lenders, Credit Unions, and Independent Mortgage Bankers (IMBs).
 * **SOM (Serviceable Obtainable Market): $360 Million ARR**
   * SaaS subscriptions and lead sync transactions across 150,000 active Loan Officers and 500,000 partner Real Estate Agents.
 
@@ -51,8 +51,8 @@
 ### 💰 Slide 6: Business Model & Revenue Streams
 1. **B2B SaaS Seat Model ($149 – $299 / month):**
    * Per Loan Officer & Co-Branded Realtor Pair. Includes unlimited spatial searches, automated CRM pipeline sync, and co-branded buyer property portals.
-2. **Enterprise Lender & Bank License ($5,000 – $25,000 / month):**
-   * Multi-branch deployment with automated CRA bank compliance auditing, custom state bond overlay integration, and white-labeled CRM plugins.
+2. **Enterprise Lender License ($5,000 – $25,000 / month):**
+   * Multi-branch deployment with custom state bond overlay integration and white-labeled CRM plugins.
 3. **Lead Pipeline Sync Volume Fee ($10 / synced lead):**
    * Usage-based transaction fee for automated CRM pipeline payload delivery to enterprise endpoints (Salesforce, Total Expert, Encompass, HubSpot).
 
@@ -64,7 +64,7 @@
 | **Real-Time USDA & LMI Spatial Polygons** | ❌ No | ❌ No | **✅ Yes (50-State Live Vector)** |
 | **Instant Automated Program Match Badging** | ❌ No | ❌ No | **✅ Yes (<100ms Auto-Match)** |
 | **LO + Realtor Co-Branded Buyer Cards** | ❌ No | ⚠️ Partial | **✅ Yes (2-Way Notes + AI Nudges)** |
-| **CRA Audit-Ready Census Tract Tracking** | ❌ No | ❌ No | **✅ Yes (Automated FFIEC Logging)** |
+| **FFIEC Census Tract Spatial Logging** | ❌ No | ❌ No | **✅ Yes (Automated FFIEC Logging)** |
 | **Program Qualification Badge CRM Sync** | ❌ No | ❌ No | **✅ Yes (Survives Sync & Export)** |
 
 ---
@@ -80,8 +80,8 @@
 ### 🎯 Slide 9: Go-To-Market (GTM) Strategy
 * **Phase 1: Product-Led Growth via LO/Agent Pairs (Months 1–6)**
   * Loan Officers invite partner Real Estate Agents to co-brand property portals for buyer leads, driving organic viral adoption.
-* **Phase 2: Enterprise Sales to Regional Banks & IMBs (Months 6–12)**
-  * Target CRA Compliance Officers and Heads of Production at regional banks seeking CRA credit fulfillment and DPA distribution.
+* **Phase 2: Enterprise Sales to Independent Mortgage Bankers & Credit Unions (Months 6–12)**
+  * Target Heads of Production and DPA Program Managers at mortgage lenders seeking streamlined down payment assistance distribution.
 * **Phase 3: CRM Marketplace Partnerships (Months 12–18)**
   * Launch native 1-click plugins in Total Expert, Salesforce Financial Services Cloud, and ICE Mortgage Technology (Encompass).
 
@@ -91,7 +91,7 @@
 * **Funding Goal:** **$3.0 Million Seed Financing**
 * **Capital Allocation:**
   * **50% Engineering & Data Architecture:** Automated state housing authority scraping, expanded AI 2nd Brain recommendation models, and real-time GIS spatial indexing.
-  * **30% Go-To-Market & Enterprise Sales:** Expanding dedicated sales team to target top 250 Independent Mortgage Bankers and Regional Banks.
+  * **30% Go-To-Market & Enterprise Sales:** Expanding dedicated sales team to target top 250 Independent Mortgage Bankers and Regional Lenders.
   * **20% Operations, Legal & Data Partnerships:** Data licensing, security certifications (SOC 2 Type II), and legal compliance.
 
 ---
