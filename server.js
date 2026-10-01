@@ -66,9 +66,14 @@ app.post('/api/geosphere-lead-sync', (req, res) => {
 // Serve static assets from project root
 app.use(express.static(__dirname));
 
+// Explicit routes for SPA entry points
+app.get(['/dashboard', '/crm', '/map'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 // Single-page application fallback
 app.use((req, res) => {
-  if (req.method === 'GET') {
+  if (req.method === 'GET' || req.method === 'HEAD') {
     res.sendFile(path.join(__dirname, 'index.html'));
   } else {
     res.status(404).json({ error: 'Not found' });
