@@ -1524,6 +1524,39 @@ function setCachedResults(cacheKey, data) {
         }).addTo(map);
     }
 
+    window.lastCapturedTractId = "";
+
+    function updateTractFieldWithProgramContext(tractGeoid) {
+        const tractField = document.getElementById('formTract');
+        if (!tractField) return;
+
+        if (tractGeoid) {
+            window.lastCapturedTractId = tractGeoid;
+        }
+        const geoid = window.lastCapturedTractId || (tractGeoid && !tractGeoid.includes('listings') && !tractGeoid.includes('Resolving') ? tractGeoid : '');
+
+        const select = document.getElementById('savedPullSelect');
+        const overlay = document.getElementById('savedOverlaySelect')?.value || 'all';
+        const pull = (typeof sharedSavedPulls !== 'undefined' && Array.isArray(sharedSavedPulls)) 
+            ? sharedSavedPulls.find((item) => item.snapshotId === select?.value) 
+            : null;
+
+        if (pull) {
+            const configuredListings = typeof configuredProgramReviewListings === 'function' 
+                ? configuredProgramReviewListings(pull, overlay) 
+                : null;
+            const listings = configuredListings || (pull.overlaySets?.[overlay] || []);
+            const overlayLabel = (typeof getLiveProgramReviewDefinition === 'function' ? getLiveProgramReviewDefinition(overlay)?.shortLabel : null)
+                || { all: 'all eligible', lmi: 'LMI', usda: 'USDA RD eligible', lmiUsda: 'LMI + USDA RD eligible' }[overlay]
+                || overlay;
+            
+            const summary = `${listings.length} saved ${overlayLabel} listings`;
+            tractField.value = geoid ? `${geoid} · ${summary}` : summary;
+        } else if (geoid) {
+            tractField.value = geoid;
+        }
+    }
+
     async function fetchCensusTractDataApi(lat, lng) {
         const trackOutputField = document.getElementById('formTract');
         if (!trackOutputField) return;
@@ -1536,45 +1569,49 @@ function setCachedResults(cacheKey, data) {
             return "";
         }
 
+        let resolvedTract = "";
+
         // 1. Local exact point-in-polygon lookup first
         if (typeof findTractForPoint === 'function') {
             const localTract = findTractForPoint(numLng, numLat);
             if (localTract) {
-                trackOutputField.value = localTract;
-                return localTract;
+                resolvedTract = localTract;
             }
         }
 
-        if (!document.getElementById('toggleCensus')?.checked) {
+        if (!resolvedTract && !document.getElementById('toggleCensus')?.checked) {
             trackOutputField.value = "Census Mode Disabled";
             return "00000000000";
         }
 
-        trackOutputField.value = "Resolving Census Tract...";
+        if (!resolvedTract) {
+            trackOutputField.value = "Resolving Census Tract...";
 
-        // 2. Real FCC Census API geocoding
-        try {
-            const fccUrl = `https://geo.fcc.gov/api/census/block/find?latitude=${numLat}&longitude=${numLng}&format=json`;
-            const resp = await fetch(fccUrl);
-            if (resp.ok) {
-                const data = await resp.json();
-                if (data && data.Block && data.Block.FIPS) {
-                    const tractGeoid = data.Block.FIPS.slice(0, 11);
-                    trackOutputField.value = tractGeoid;
-                    return tractGeoid;
+            // 2. Real FCC Census API geocoding
+            try {
+                const fccUrl = `https://geo.fcc.gov/api/census/block/find?latitude=${numLat}&longitude=${numLng}&format=json`;
+                const resp = await fetch(fccUrl);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data && data.Block && data.Block.FIPS) {
+                        resolvedTract = data.Block.FIPS.slice(0, 11);
+                    }
                 }
+            } catch (err) {
+                console.warn("FCC Census API lookup failed, using fallback", err);
             }
-        } catch (err) {
-            console.warn("FCC Census API lookup failed, using fallback", err);
         }
 
         // 3. Fallback
-        const stateFips = document.getElementById('stateSelect')?.value || '41';
-        const latSeed = Math.abs(Math.round(numLat * 10000)) % 1000;
-        const lngSeed = Math.abs(Math.round(numLng * 10000)) % 1000;
-        const mockTractId = `${stateFips}03900${String((latSeed + lngSeed) % 900 + 100).padStart(3, '0')}`;
-        trackOutputField.value = mockTractId;
-        return mockTractId;
+        if (!resolvedTract) {
+            const stateFips = document.getElementById('stateSelect')?.value || '41';
+            const latSeed = Math.abs(Math.round(numLat * 10000)) % 1000;
+            const lngSeed = Math.abs(Math.round(numLng * 10000)) % 1000;
+            resolvedTract = `${stateFips}03900${String((latSeed + lngSeed) % 900 + 100).padStart(3, '0')}`;
+        }
+
+        updateTractFieldWithProgramContext(resolvedTract);
+        return resolvedTract;
     }
             // --- 6. PROPERTY SEARCH (TEST MODE + LIVE MODE) ---
     async function performPropertySearch(query) {
@@ -2775,7 +2812,7 @@ async function loadFirstHomeLimits() {
 	        const overlayLabel = getLiveProgramReviewDefinition(overlay)?.shortLabel
 	            || { all: 'all eligible', lmi: 'LMI', usda: 'USDA RD eligible', lmiUsda: 'LMI + USDA RD eligible' }[overlay]
 	            || overlay;
-        tractField.value = `${listings.length} saved ${overlayLabel} listings`;
+        updateTractFieldWithProgramContext();
         status.textContent = `Showing ${listings.length} ${overlayLabel} listings from ${formatSavedPullLabel(pull)}. Cache-only — no Rentcast call.`;
         displayListingsOnMap(listings);
 
