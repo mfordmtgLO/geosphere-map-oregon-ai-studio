@@ -3,7 +3,6 @@ import path from 'path';
 import { buildOverlaySets, buildProgramReviewSets } from '../api/overlay-classification.js';
 import { getProgramReviewConfiguration } from '../api/program-review-config.js';
 
-// Seeded random helper for deterministic mock generation
 function createRandom(seedStr) {
   let h = 2166136261 >>> 0;
   for (let i = 0; i < seedStr.length; i++) {
@@ -34,8 +33,8 @@ function generateCityListings(cityName, state, county, zipCode, centerLat, cente
     let units = 1;
     let beds = Math.floor(2 + rand() * 3);
     let baths = Math.floor(1 + rand() * 3);
-    let sqft = Math.floor(1000 + rand() * 1800);
-    let price = Math.floor(250000 + rand() * 350000);
+    let sqft = Math.floor(1200 + rand() * 1600);
+    let price = Math.floor(320000 + rand() * 280000);
 
     if (isMultiFamily) {
       propType = rand() > 0.5 ? "Triplex" : "Fourplex";
@@ -57,9 +56,8 @@ function generateCityListings(cityName, state, county, zipCode, centerLat, cente
       price = Math.floor(210000 + rand() * 180000);
     }
 
-    // Spread coordinates slightly around city center
-    const latOffset = (rand() - 0.5) * 0.06;
-    const lngOffset = (rand() - 0.5) * 0.08;
+    const latOffset = (rand() - 0.5) * 0.04;
+    const lngOffset = (rand() - 0.5) * 0.05;
     const lat = Number((centerLat + latOffset).toFixed(6));
     const lng = Number((centerLng + lngOffset).toFixed(6));
 
@@ -74,7 +72,7 @@ function generateCityListings(cityName, state, county, zipCode, centerLat, cente
     const agentLastName = LAST_NAMES[lnIdx] || "Representative";
     const agentName = `${agentFirstName} ${agentLastName}`;
     const brokerage = AGENT_BROKERAGES[Math.floor(rand() * AGENT_BROKERAGES.length)];
-    const phoneNum = `541-${Math.floor(200 + rand() * 700)}-${Math.floor(1000 + rand() * 9000)}`;
+    const phoneNum = `503-${Math.floor(200 + rand() * 700)}-${Math.floor(1000 + rand() * 9000)}`;
     const email = `${agentFirstName.toLowerCase()}.${agentLastName.toLowerCase()}@${brokerage.toLowerCase().replace(/[^a-z]/g, '')}.com`;
 
     listings.push({
@@ -93,8 +91,8 @@ function generateCityListings(cityName, state, county, zipCode, centerLat, cente
       squareFootage: sqft,
       propertyType: propType,
       units,
-      yearBuilt: Math.floor(1965 + rand() * 58),
-      daysOnMarket: Math.floor(1 + rand() * 45),
+      yearBuilt: Math.floor(1975 + rand() * 48),
+      daysOnMarket: Math.floor(1 + rand() * 25),
       mlsNumber: `OR${Math.floor(22000000 + rand() * 9000000)}`,
       mlsName: "RMLS",
       listingAgent: {
@@ -110,9 +108,20 @@ function generateCityListings(cityName, state, county, zipCode, centerLat, cente
 }
 
 async function main() {
-  console.log("Generating 200+ Rentcast saved listing snapshots...");
+  console.log("Generating Rentcast saved listing snapshots including Boring, OR...");
 
   const citiesConfig = [
+    {
+      cityName: "Boring",
+      state: "OR",
+      county: "Clackamas",
+      zipCode: "97009",
+      centerLat: 45.4312,
+      centerLng: -122.3734,
+      count: 3,
+      savedAt: "2026-10-01T11:45:00.000Z",
+      cacheKey: "listings:boring:clackamas:97009:or"
+    },
     {
       cityName: "Cottage Grove",
       state: "OR",

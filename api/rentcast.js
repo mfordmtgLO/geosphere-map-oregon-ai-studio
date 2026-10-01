@@ -3,6 +3,7 @@ import { timingSafeEqual } from "node:crypto";
 import { kv } from '@vercel/kv';
 import { buildOverlaySets, buildProgramReviewSets } from './overlay-classification.js';
 import { getProgramReviewConfiguration } from './program-review-config.js';
+import { saveLocalListingSnapshot } from './saved-listings.js';
 
 const CACHE_TTL_SECONDS = 30 * 24 * 60 * 60; // 30 days
 const MAX_MONTHLY_PULLS = 50;
@@ -221,13 +222,19 @@ export default async function handler(req, res) {
             maxPulls: MAX_MONTHLY_PULLS
         };
 
-        // Store snapshot in Upstash KV only if it has listings
+        // Store snapshot in Upstash KV and local disk backup if it has listings
         if (overlaySets.all.length > 0) {
             try {
                 await kv.set(cacheKey, result, { ex: CACHE_TTL_SECONDS });
                 console.log('KV stored snapshot:', cacheKey);
             } catch (e) {
                 console.warn('KV write failed:', e.message);
+            }
+            try {
+                await saveLocalListingSnapshot(result);
+                console.log('Local disk backup stored snapshot:', cacheKey);
+            } catch (e) {
+                console.warn('Local disk backup write failed:', e.message);
             }
         }
 
