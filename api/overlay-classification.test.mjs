@@ -91,11 +91,11 @@ test("adds FirstHome metadata without changing the existing dashboard sync overl
   assert.deepEqual(buildProgramReviewSets(overlaySets.all).firstHome, []);
 });
 
-test("marks only map-ready Oregon sale listings for Lakeview National review without implying qualification", () => {
+test("marks map-ready sale listings nationwide for Lakeview National review without implying qualification", () => {
   assert.deepEqual(getLakeviewNationalReviewScreening({ state: "OR", formattedAddress: "123 Main St", latitude: 44.1, longitude: -123.1 }, "OR"), {
     available: true,
     reviewReady: false,
-    screenVersion: "rentcast-active-sale-county-cap-stick-built-one-to-four-v4",
+    screenVersion: "rentcast-active-sale-county-cap-stick-built-one-to-four-v5",
     state: "OR",
     county: null,
     countyFips: null,
@@ -109,7 +109,8 @@ test("marks only map-ready Oregon sale listings for Lakeview National review wit
   assert.equal(LAKEVIEW_NATIONAL_OREGON_2026_ONE_UNIT_REVIEW_CAP, 832750);
   assert.equal(getLakeviewNationalReviewScreening({ state: "OR", propertyType: "Single Family", formattedAddress: "123 Main St", latitude: 44.1, longitude: -123.1, price: 832750 }, "OR").reviewReady, true);
   assert.equal(getLakeviewNationalReviewScreening({ state: "OR", propertyType: "Single Family", formattedAddress: "123 Main St", latitude: 44.1, longitude: -123.1, price: 832751 }, "OR").priceWithinDefaultCap, false);
-  assert.equal(getLakeviewNationalReviewScreening({ state: "WA", propertyType: "Single Family", formattedAddress: "123 Main St", latitude: 47.6, longitude: -122.3, price: 600000 }, "WA").reviewReady, false);
+  assert.equal(getLakeviewNationalReviewScreening({ state: "WA", propertyType: "Single Family", formattedAddress: "123 Main St", latitude: 47.6, longitude: -122.3, price: 600000 }, "WA").reviewReady, true);
+  assert.equal(getLakeviewNationalReviewScreening({ state: "CA", propertyType: "Single Family", formattedAddress: "456 Market St", latitude: 37.7, longitude: -122.4, price: 750000 }, "CA").reviewReady, true);
   assert.equal(getLakeviewNationalReviewScreening({ state: "OR", formattedAddress: "123 Main St" }, "OR").reviewReady, false);
 });
 

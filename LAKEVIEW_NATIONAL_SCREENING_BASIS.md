@@ -2,7 +2,7 @@
 
 ## Purpose and boundary
 
-This GeoSphere feature may identify **for-sale listings in Oregon and owner-configured Washington review areas for Lakeview National review**. It is not an automated eligibility, pricing, underwriting, credit, income, debt-to-income, loan-to-value, or approval decision. The official Lakeview materials state that program references are offered to qualified residential lending institutions and are not applicable to the general public or individual consumers.[1]
+This GeoSphere feature may identify **for-sale listings across all 50 US States for Lakeview National review**. It is not an automated eligibility, pricing, underwriting, credit, income, debt-to-income, loan-to-value, or approval decision. The official Lakeview materials state that program references are offered to qualified residential lending institutions and are not applicable to the general public or individual consumers.[1]
 
 ## Official program facts captured for UI context
 

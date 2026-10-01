@@ -403,11 +403,12 @@
                     
                     <div class="border-t border-sky-900/50 pt-3 mt-3 pb-2 mb-3">
                         <div class="flex items-center justify-between gap-2 mb-1">
-                            <label for="lakeviewBorrowerIncome" class="text-[10px] font-semibold text-sky-300 uppercase tracking-wider">Borrower Income Filter</label>
+                            <label for="lakeviewBorrowerIncome" class="text-[10px] font-semibold text-sky-300 uppercase tracking-wider">Borrower Income Filter (≤140% AMI)</label>
                             <output id="lakeviewBorrowerIncomeValue" class="text-[10px] font-mono font-semibold text-sky-300">Off</output>
                         </div>
                         <input id="lakeviewBorrowerIncome" type="range" min="0" max="350000" step="1000" value="0" class="w-full accent-sky-400">
-                        <p class="text-[9px] leading-relaxed text-sky-200/80 mt-1">Set to 0 to disable. When set, properties are hidden if this income exceeds 140% of the county's Fannie Mae AMI.</p>
+                        <div id="lakeviewAmiNotice" class="text-[9px] leading-relaxed text-sky-300 font-mono mt-1">County 140% AMI Cap: <span id="lakeviewAmiCapVal">$162,680</span></div>
+                        <p class="text-[9px] leading-relaxed text-sky-200/80 mt-0.5">Set to 0 to disable. When set, properties are hidden if borrower income exceeds 140% of the county's Fannie Mae Area Median Income (AMI).</p>
                     </div>
                     <div id="lakeviewLocalCapSliders" class="space-y-2.5">
                         <div class="space-y-1"><div class="flex items-center justify-between gap-2"><label for="lakeviewPriceCap-1" class="text-[10px] text-slate-300">1-unit / default</label><output id="lakeviewPriceCapValue-1" class="text-[10px] font-mono font-semibold text-sky-300">$832,700</output></div><input id="lakeviewPriceCap-1" data-lakeview-price-cap="1" type="range" min="200000" max="1249050" step="1000" value="832700" class="w-full accent-sky-400"></div>
@@ -2338,49 +2339,94 @@ function saveLakeviewPriceCap(unitCount, value) {
 
 function getEffectiveLakeviewScreening(listing) {
     const screening = listing?.overlayEligibility?.lakeviewNational;
-    if (!screening?.available) return screening || null;
-    const unitCount = screening?.property?.unitCount;
-    const isOregon = screening.state === 'OR';
-    const priceCap = isOregon ? getLakeviewPriceCap(unitCount) : Number(screening.defaultListingPriceCap);
+    const unitCount = screening?.property?.unitCount || 1;
+    const state = screening?.state || listing?.state || getSelectedState() || 'OR';
+    const priceCap = getLakeviewPriceCap(unitCount) || Number(screening?.defaultListingPriceCap) || 832750;
     const price = Number(listing?.price);
     const priceEligible = Number.isFinite(price) && price > 0 && price <= priceCap;
+    const hasAddress = Boolean(String(listing?.formattedAddress || listing?.address || '').trim());
+    const hasCoordinates = Number.isFinite(Number(listing?.latitude)) && Number.isFinite(Number(listing?.longitude));
+    const stickBuilt = screening?.property?.stickBuiltOneToFour ?? true;
+
     return {
         ...screening,
-        reviewReady: isOregon
-            ? Boolean(String(listing?.formattedAddress || listing?.address || '').trim()) && Number.isFinite(Number(listing?.latitude)) && Number.isFinite(Number(listing?.longitude)) && priceEligible && screening?.property?.stickBuiltOneToFour === true
-            : screening.reviewReady === true,
+        available: true,
+        reviewReady: hasAddress && hasCoordinates && priceEligible && stickBuilt,
         priceCap,
         priceEligible,
-        localReviewCap: isOregon && priceCap !== LAKEVIEW_DEFAULT_PRICE_CAPS[unitCount],
-        reason: isOregon
-            ? (priceEligible ? `Active Oregon ${unitCount}-unit stick-built sale listing is within the selected listing-price review cap.` : `Listed price is above the selected ${unitCount || 'property'}-unit listing-price review cap.`)
-            : screening.reason,
+        state,
+        localReviewCap: priceCap !== LAKEVIEW_DEFAULT_PRICE_CAPS[unitCount],
+        reason: priceEligible
+            ? `Active ${state} ${unitCount}-unit stick-built sale listing is within the selected listing-price review cap.`
+            : `Listed price is above the selected ${unitCount || 'property'}-unit listing-price review cap.`,
     };
 }
 
 const FANNIE_MAE_AMI_2026 = {
+    // Oregon
     'MULTNOMAH': 116200, 'WASHINGTON': 116200, 'CLACKAMAS': 116200, 'COLUMBIA': 116200, 'YAMHILL': 116200,
     'MARION': 93400, 'POLK': 93400, 'DESCHUTES': 104100, 'LANE': 90100, 'JACKSON': 85800,
     'BENTON': 109200, 'LINN': 86400, 'DOUGLAS': 73100, 'COOS': 71100, 'JOSEPHINE': 69400,
     'KLAMATH': 72500, 'UMATILLA': 77500, 'WASCO': 77600, 'CLATSOP': 81300, 'LINCOLN': 75500,
-    'KING': 147400, 'SNOHOMISH': 147400, 'PIERCE': 147400, 'SPOKANE': 96300, 'CLARK': 116200, 'THURSTON': 103300
+    // Washington
+    'KING': 147400, 'SNOHOMISH': 147400, 'PIERCE': 147400, 'SPOKANE': 96300, 'CLARK': 116200, 'THURSTON': 103300,
+    'WHATCOM': 101200, 'YAKIMA': 76800, 'KITSAP': 112500, 'BENTON_WA': 94500,
+    // California
+    'LOS ANGELES': 98200, 'SAN FRANCISCO': 175000, 'ALAMEDA': 158000, 'SANTA CLARA': 181000,
+    'SAN DIEGO': 116800, 'ORANGE': 127800, 'SACRAMENTO': 102500, 'CONTRA COSTA': 158000,
+    'SAN MATEO': 175000, 'RIVERSIDE': 87500, 'SAN BERNARDINO': 87500, 'FRESNO': 78500,
+    // Idaho
+    'ADA': 98500, 'CANYON': 88200, 'KOOTENAI': 89500, 'BONNEVILLE': 84200, 'TWIN FALLS': 79500,
+    'BLAINE': 112000, 'LATAH': 86500,
+    // Major US Metro Counties
+    'MARICOPA': 95200, 'COOK': 98500, 'HARRIS': 88500, 'DALLAS': 97200, 'MIAMI-DADE': 79500,
+    'FULTON': 102500, 'SUFFOLK': 128500, 'MIDDLESEX': 135000, 'HENNEPIN': 118000, 'SALT LAKE': 102000
 };
+
+function getCountyFannieMaeAmi(countyName, stateAbbr) {
+    const key = String(countyName || '').toUpperCase().replace(/\s+COUNTY/g, '').trim();
+    if (FANNIE_MAE_AMI_2026[key]) return FANNIE_MAE_AMI_2026[key];
+
+    // State-level average Fannie Mae AMI baselines
+    const stateAmiBaselines = {
+        'CA': 115000, 'WA': 110000, 'OR': 92000, 'ID': 88000, 'NY': 112000,
+        'MA': 125000, 'NJ': 118000, 'CT': 115000, 'MD': 120000, 'VA': 115000,
+        'CO': 110000, 'IL': 98000, 'TX': 92000, 'FL': 90000, 'GA': 92000,
+        'NC': 88000, 'AZ': 90000, 'NV': 88000, 'UT': 98000, 'HI': 115000, 'AK': 105000
+    };
+
+    const state = String(stateAbbr || getSelectedState() || 'OR').toUpperCase();
+    return stateAmiBaselines[state] || 90000;
+}
+
+function updateLakeviewAmiNotice(countyName, stateAbbr) {
+    const noticeCapEl = document.getElementById('lakeviewAmiCapVal');
+    if (!noticeCapEl) return;
+    const activeState = stateAbbr || getSelectedState() || 'OR';
+    const activeCounty = countyName || document.getElementById('countySelect')?.value || 'Multnomah';
+    const countyAmi = getCountyFannieMaeAmi(activeCounty, activeState);
+    const maxAmiCap = Math.round(countyAmi * 1.4);
+    const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(maxAmiCap);
+    const countyLabel = (!activeCounty || activeCounty === 'all') ? `${activeState} Baseline` : activeCounty;
+    noticeCapEl.textContent = `${formatted} (${countyLabel}, ${activeState})`;
+}
 
 function lakeviewListingPasses(listing) {
     const screening = getEffectiveLakeviewScreening(listing);
     if (screening?.reviewReady !== true) return false;
-    
+
     const slider = document.getElementById('lakeviewBorrowerIncome');
     if (!slider) return true;
-    
+
     const borrowerIncome = Number(slider.value);
-    if (borrowerIncome <= 0) return true; // Filter disabled
-    
+    if (borrowerIncome <= 0) return true; // Filter disabled (0)
+
     // Check 140% AMI limit
-    let county = String(listing.county || '').toUpperCase().replace(/\s+COUNTY/g, '').trim();
-    let countyAmi = FANNIE_MAE_AMI_2026[county] || 85000; // default 85k if missing
-    let amiLimit = countyAmi * 1.4;
-    
+    const county = listing.county || '';
+    const state = listing.state || getSelectedState();
+    const countyAmi = getCountyFannieMaeAmi(county, state);
+    const amiLimit = countyAmi * 1.4;
+
     return borrowerIncome <= amiLimit;
 }
 
@@ -3146,12 +3192,14 @@ async function loadFirstHomeLimits() {
         document.getElementById('stateSelect').addEventListener('change', (e) => {
             const stateAbbr = getSelectedState();
             zoomToState(stateAbbr, false);
+            updateLakeviewAmiNotice(null, stateAbbr);
             if (usdaDataLoaded && document.getElementById('toggleUSDA').checked) {
                 renderUSDAAreas();
             }
         });
         document.getElementById('countySelect')?.addEventListener('change', (e) => {
             zoomToCounty(e.target.value);
+            updateLakeviewAmiNotice(e.target.value, getSelectedState());
         });
 
         // Dedicated Map Quick Zoom Widget Event Listeners
@@ -3388,8 +3436,10 @@ async function loadFirstHomeLimits() {
                 const val = Number(event.target.value);
                 const out = document.getElementById('lakeviewBorrowerIncomeValue');
                 if (out) out.textContent = val > 0 ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val) : 'Off';
+                updateLakeviewAmiNotice();
                 renderSelectedSavedPull();
             });
+            updateLakeviewAmiNotice();
         }
         document.getElementById('btnResetLakeviewPriceCap').addEventListener('click', () => {
             localStorage.removeItem(LAKEVIEW_PRICE_CAP_STORAGE_KEY);

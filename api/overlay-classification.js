@@ -412,17 +412,15 @@ export function getLakeviewNationalReviewScreening(listing, requestedState, fhfa
   const property = getLakeviewNationalPropertyScreening(listing);
   const countyLimits = fhfaPacificLimits?.states?.get(state);
   const countyLimit = countyLimits?.get(normalizeAreaName(listing?.county));
-  const configuredState = state === "OR" || state === "WA";
-  const hasCountyLimit = Boolean(countyLimit);
-  const available = configuredState && (state === "OR" || hasCountyLimit);
+  const available = true;
   const defaultListingPriceCap = countyLimit?.caps?.[property.unitCount]
-    ?? (state === "OR" ? LAKEVIEW_NATIONAL_OREGON_2026_REVIEW_CAPS[property.unitCount] : null)
+    ?? LAKEVIEW_NATIONAL_OREGON_2026_REVIEW_CAPS[property.unitCount]
     ?? LAKEVIEW_NATIONAL_OREGON_2026_ONE_UNIT_REVIEW_CAP;
   const priceWithinDefaultCap = hasListedPrice ? price <= defaultListingPriceCap : false;
   return {
     available,
-    reviewReady: available && hasAddress && hasCoordinates && priceWithinDefaultCap && property.stickBuiltOneToFour,
-    screenVersion: "rentcast-active-sale-county-cap-stick-built-one-to-four-v4",
+    reviewReady: hasAddress && hasCoordinates && priceWithinDefaultCap && property.stickBuiltOneToFour,
+    screenVersion: "rentcast-active-sale-county-cap-stick-built-one-to-four-v5",
     state,
     county: countyLimit?.county ?? (listing?.county ? String(listing.county).trim() : null),
     countyFips: countyLimit?.fips ?? null,
@@ -431,19 +429,15 @@ export function getLakeviewNationalReviewScreening(listing, requestedState, fhfa
     defaultListingPriceCap,
     priceWithinDefaultCap,
     property,
-    reason: !configuredState
-      ? "Lakeview National review screen is currently configured for Oregon and Washington saved listings only."
-      : state === "WA" && !hasCountyLimit
-        ? "Washington listing needs a recognized county to apply the official 2026 county review cap."
-        : !hasAddress || !hasCoordinates
-          ? `${state === "OR" ? "Oregon" : state} listing needs an address and map coordinates for review.`
-          : !hasListedPrice
-            ? `${state === "OR" ? "Oregon" : state} listing needs a usable listed price for the review cap.`
-            : !property.stickBuiltOneToFour
-              ? property.reason
-              : priceWithinDefaultCap
-                ? `Active ${state === "OR" ? "Oregon" : state} stick-built one-to-four-unit sale listing is within the 2026 ${countyLimit ? "county" : "state"} review cap.`
-                : "Listed price is above the 2026 review cap.",
+    reason: !hasAddress || !hasCoordinates
+      ? `${state === "OR" ? "Oregon" : state} listing needs an address and map coordinates for review.`
+      : !hasListedPrice
+        ? `${state === "OR" ? "Oregon" : state} listing needs a usable listed price for the review cap.`
+        : !property.stickBuiltOneToFour
+          ? property.reason
+          : priceWithinDefaultCap
+            ? `Active ${state === "OR" ? "Oregon" : state} stick-built one-to-four-unit sale listing is within the 2026 ${countyLimit ? "county" : "state"} review cap.`
+            : "Listed price is above the 2026 review cap.",
   };
 }
 

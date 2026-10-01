@@ -5,7 +5,7 @@ import test from "node:test";
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 
 test("exposes Lakeview National as an explicit saved-list review selection", () => {
-  assert.match(html, /value="lakeviewNational">Lakeview National: Oregon \+ Washington review screen/);
+  assert.match(html, /value="lakeviewNational">Lakeview National/);
   assert.match(html, /Lakeview National is a listing-review screen only/);
   assert.match(html, /\(pull\?\.overlaySets\?\.all \|\| \[\]\)\.filter\(lakeviewListingPasses\)/);
   assert.match(html, /getLiveProgramReviewDefinition\(overlay\)\?\.shortLabel/);
@@ -38,11 +38,10 @@ test("stores distinct local annual review caps by property unit count", () => {
   assert.match(html, /function saveLakeviewPriceCap\(unitCount, value\)/);
 });
 
-test("uses server-provided Washington county caps instead of Oregon local slider values", () => {
-  assert.match(html, /const isWashington = state === 'WA';/);
-  assert.match(html, /Washington county and unit values are applied automatically/);
-  assert.match(html, /const isOregon = screening\.state === 'OR';/);
-  assert.match(html, /Number\(screening\.defaultListingPriceCap\)/);
+test("supports 50-state nationwide Lakeview National review screening and county AMI limits", () => {
+  assert.match(html, /function getCountyFannieMaeAmi\(countyName, stateAbbr\)/);
+  assert.match(html, /function updateLakeviewAmiNotice\(countyName, stateAbbr\)/);
+  assert.match(html, /function lakeviewListingPasses\(listing\)/);
 });
 
 test("exposes the source-backed FHFA county review overlay without a loan-decision claim", () => {

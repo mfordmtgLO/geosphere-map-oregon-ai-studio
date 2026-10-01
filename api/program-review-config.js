@@ -42,11 +42,11 @@ export const PROGRAM_REVIEW_DEFINITIONS = Object.freeze([
   Object.freeze({
     id: "lakeviewNational",
     eligibilityKey: "lakeviewNational",
-    label: "Lakeview National: Oregon + Washington review screen",
+    label: "Lakeview National: Nationwide 140% AMI review screen",
     shortLabel: "Lakeview National review-screened",
-    states: Object.freeze(["OR", "WA"]),
-    sourceLabel: "FHFA 2026 county values and GeoSphere review policy",
-    disclosure: "Lakeview National is a listing-review screen only. It does not verify income, credit, AUS, DTI, LTV/CLTV, occupancy, program availability, property eligibility, or underwriting.",
+    states: Object.freeze(["OR", "WA", "CA", "ID", "AL", "AK", "AZ", "AR", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WV", "WI", "WY"]),
+    sourceLabel: "Fannie Mae 140% Area Median Income (AMI) county limits and GeoSphere review policy",
+    disclosure: "Lakeview National is a nationwide listing-review screen requiring borrower income to be at or below 140% Fannie Mae Area Median Income (AMI) for the county. It does not verify income, credit, AUS, DTI, LTV/CLTV, occupancy, program availability, property eligibility, or underwriting.",
   }),
 ]);
 
