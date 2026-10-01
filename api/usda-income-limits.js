@@ -1,52 +1,51 @@
 import { GoogleGenAI } from '@google/genai';
 
-// Official 2026 USDA Single Family Housing Guaranteed Loan Program Income Limits
-// Baseline non-metro 2026 limits: 1-4 Persons = $112,450 | 5-8 Persons = $148,450 (132% of 1-4 limit)
-// High cost Oregon / Washington / California / Idaho counties have higher specific thresholds.
+// Official 2026 USDA Single Family Housing Guaranteed Loan Program Income Limits (Effective 10-01-2026)
+// Official USDA Eligibility Determination Portal baseline: 1-4 Persons = $122,800 | 5-8 Persons = $162,100 (132% of 1-4 limit)
 export const OFFICIAL_USDA_2026_COUNTY_INCOME_LIMITS = {
   // Oregon
-  'BAKER': { limit1to4: 112450, limit5to8: 148450, county: 'Baker', state: 'OR', isHighCost: false },
-  'BENTON': { limit1to4: 125150, limit5to8: 165200, county: 'Benton', state: 'OR', isHighCost: true },
-  'CLACKAMAS': { limit1to4: 135500, limit5to8: 178850, county: 'Clackamas', state: 'OR', isHighCost: true },
-  'CLATSOP': { limit1to4: 112450, limit5to8: 148450, county: 'Clatsop', state: 'OR', isHighCost: false },
-  'COLUMBIA': { limit1to4: 135500, limit5to8: 178850, county: 'Columbia', state: 'OR', isHighCost: true },
-  'COOS': { limit1to4: 112450, limit5to8: 148450, county: 'Coos', state: 'OR', isHighCost: false },
-  'CROOK': { limit1to4: 112450, limit5to8: 148450, county: 'Crook', state: 'OR', isHighCost: false },
-  'CURRY': { limit1to4: 112450, limit5to8: 148450, county: 'Curry', state: 'OR', isHighCost: false },
-  'DESCHUTES': { limit1to4: 120550, limit5to8: 159150, county: 'Deschutes', state: 'OR', isHighCost: true },
-  'DOUGLAS': { limit1to4: 112450, limit5to8: 148450, county: 'Douglas', state: 'OR', isHighCost: false },
-  'GILLIAM': { limit1to4: 112450, limit5to8: 148450, county: 'Gilliam', state: 'OR', isHighCost: false },
-  'GRANT': { limit1to4: 112450, limit5to8: 148450, county: 'Grant', state: 'OR', isHighCost: false },
-  'HARNEY': { limit1to4: 112450, limit5to8: 148450, county: 'Harney', state: 'OR', isHighCost: false },
-  'HOOD RIVER': { limit1to4: 121500, limit5to8: 160400, county: 'Hood River', state: 'OR', isHighCost: true },
-  'JACKSON': { limit1to4: 112450, limit5to8: 148450, county: 'Jackson', state: 'OR', isHighCost: false },
-  'JEFFERSON': { limit1to4: 112450, limit5to8: 148450, county: 'Jefferson', state: 'OR', isHighCost: false },
-  'JOSEPHINE': { limit1to4: 112450, limit5to8: 148450, county: 'Josephine', state: 'OR', isHighCost: false },
-  'KLAMATH': { limit1to4: 112450, limit5to8: 148450, county: 'Klamath', state: 'OR', isHighCost: false },
-  'LAKE': { limit1to4: 112450, limit5to8: 148450, county: 'Lake', state: 'OR', isHighCost: false },
-  'LANE': { limit1to4: 112450, limit5to8: 148450, county: 'Lane', state: 'OR', isHighCost: false },
-  'LINCOLN': { limit1to4: 112450, limit5to8: 148450, county: 'Lincoln', state: 'OR', isHighCost: false },
-  'LINN': { limit1to4: 112450, limit5to8: 148450, county: 'Linn', state: 'OR', isHighCost: false },
-  'MALHEUR': { limit1to4: 112450, limit5to8: 148450, county: 'Malheur', state: 'OR', isHighCost: false },
-  'MARION': { limit1to4: 112450, limit5to8: 148450, county: 'Marion', state: 'OR', isHighCost: false },
-  'MORROW': { limit1to4: 112450, limit5to8: 148450, county: 'Morrow', state: 'OR', isHighCost: false },
-  'MULTNOMAH': { limit1to4: 135500, limit5to8: 178850, county: 'Multnomah', state: 'OR', isHighCost: true },
-  'POLK': { limit1to4: 112450, limit5to8: 148450, county: 'Polk', state: 'OR', isHighCost: false },
-  'SHERMAN': { limit1to4: 112450, limit5to8: 148450, county: 'Sherman', state: 'OR', isHighCost: false },
-  'TILLAMOOK': { limit1to4: 112450, limit5to8: 148450, county: 'Tillamook', state: 'OR', isHighCost: false },
-  'UMATILLA': { limit1to4: 112450, limit5to8: 148450, county: 'Umatilla', state: 'OR', isHighCost: false },
-  'UNION': { limit1to4: 112450, limit5to8: 148450, county: 'Union', state: 'OR', isHighCost: false },
-  'WALLOWA': { limit1to4: 112450, limit5to8: 148450, county: 'Wallowa', state: 'OR', isHighCost: false },
-  'WASCO': { limit1to4: 112450, limit5to8: 148450, county: 'Wasco', state: 'OR', isHighCost: false },
-  'WASHINGTON': { limit1to4: 135500, limit5to8: 178850, county: 'Washington', state: 'OR', isHighCost: true },
-  'WHEELER': { limit1to4: 112450, limit5to8: 148450, county: 'Wheeler', state: 'OR', isHighCost: false },
-  'YAMHILL': { limit1to4: 135500, limit5to8: 178850, county: 'Yamhill', state: 'OR', isHighCost: true },
+  'BAKER': { limit1to4: 122800, limit5to8: 162100, county: 'Baker', state: 'OR', isHighCost: false },
+  'BENTON': { limit1to4: 136650, limit5to8: 180400, county: 'Benton', state: 'OR', isHighCost: true },
+  'CLACKAMAS': { limit1to4: 147950, limit5to8: 195300, county: 'Clackamas', state: 'OR', isHighCost: true },
+  'CLATSOP': { limit1to4: 122800, limit5to8: 162100, county: 'Clatsop', state: 'OR', isHighCost: false },
+  'COLUMBIA': { limit1to4: 147950, limit5to8: 195300, county: 'Columbia', state: 'OR', isHighCost: true },
+  'COOS': { limit1to4: 122800, limit5to8: 162100, county: 'Coos', state: 'OR', isHighCost: false },
+  'CROOK': { limit1to4: 122800, limit5to8: 162100, county: 'Crook', state: 'OR', isHighCost: false },
+  'CURRY': { limit1to4: 122800, limit5to8: 162100, county: 'Curry', state: 'OR', isHighCost: false },
+  'DESCHUTES': { limit1to4: 131600, limit5to8: 173700, county: 'Deschutes', state: 'OR', isHighCost: true },
+  'DOUGLAS': { limit1to4: 122800, limit5to8: 162100, county: 'Douglas', state: 'OR', isHighCost: false },
+  'GILLIAM': { limit1to4: 122800, limit5to8: 162100, county: 'Gilliam', state: 'OR', isHighCost: false },
+  'GRANT': { limit1to4: 122800, limit5to8: 162100, county: 'Grant', state: 'OR', isHighCost: false },
+  'HARNEY': { limit1to4: 122800, limit5to8: 162100, county: 'Harney', state: 'OR', isHighCost: false },
+  'HOOD RIVER': { limit1to4: 132650, limit5to8: 175100, county: 'Hood River', state: 'OR', isHighCost: true },
+  'JACKSON': { limit1to4: 122800, limit5to8: 162100, county: 'Jackson', state: 'OR', isHighCost: false },
+  'JEFFERSON': { limit1to4: 122800, limit5to8: 162100, county: 'Jefferson', state: 'OR', isHighCost: false },
+  'JOSEPHINE': { limit1to4: 122800, limit5to8: 162100, county: 'Josephine', state: 'OR', isHighCost: false },
+  'KLAMATH': { limit1to4: 122800, limit5to8: 162100, county: 'Klamath', state: 'OR', isHighCost: false },
+  'LAKE': { limit1to4: 122800, limit5to8: 162100, county: 'Lake', state: 'OR', isHighCost: false },
+  'LANE': { limit1to4: 122800, limit5to8: 162100, county: 'Lane', state: 'OR', isHighCost: false },
+  'LINCOLN': { limit1to4: 122800, limit5to8: 162100, county: 'Lincoln', state: 'OR', isHighCost: false },
+  'LINN': { limit1to4: 122800, limit5to8: 162100, county: 'Linn', state: 'OR', isHighCost: false },
+  'MALHEUR': { limit1to4: 122800, limit5to8: 162100, county: 'Malheur', state: 'OR', isHighCost: false },
+  'MARION': { limit1to4: 122800, limit5to8: 162100, county: 'Marion', state: 'OR', isHighCost: false },
+  'MORROW': { limit1to4: 122800, limit5to8: 162100, county: 'Morrow', state: 'OR', isHighCost: false },
+  'MULTNOMAH': { limit1to4: 147950, limit5to8: 195300, county: 'Multnomah', state: 'OR', isHighCost: true },
+  'POLK': { limit1to4: 122800, limit5to8: 162100, county: 'Polk', state: 'OR', isHighCost: false },
+  'SHERMAN': { limit1to4: 122800, limit5to8: 162100, county: 'Sherman', state: 'OR', isHighCost: false },
+  'TILLAMOOK': { limit1to4: 122800, limit5to8: 162100, county: 'Tillamook', state: 'OR', isHighCost: false },
+  'UMATILLA': { limit1to4: 122800, limit5to8: 162100, county: 'Umatilla', state: 'OR', isHighCost: false },
+  'UNION': { limit1to4: 122800, limit5to8: 162100, county: 'Union', state: 'OR', isHighCost: false },
+  'WALLOWA': { limit1to4: 122800, limit5to8: 162100, county: 'Wallowa', state: 'OR', isHighCost: false },
+  'WASCO': { limit1to4: 122800, limit5to8: 162100, county: 'Wasco', state: 'OR', isHighCost: false },
+  'WASHINGTON': { limit1to4: 147950, limit5to8: 195300, county: 'Washington', state: 'OR', isHighCost: true },
+  'WHEELER': { limit1to4: 122800, limit5to8: 162100, county: 'Wheeler', state: 'OR', isHighCost: false },
+  'YAMHILL': { limit1to4: 147950, limit5to8: 195300, county: 'Yamhill', state: 'OR', isHighCost: true },
 
   // Washington High-Cost Key Counties
-  'KING': { limit1to4: 173550, limit5to8: 229100, county: 'King', state: 'WA', isHighCost: true },
-  'SNOHOMISH': { limit1to4: 173550, limit5to8: 229100, county: 'Snohomish', state: 'WA', isHighCost: true },
-  'PIERCE': { limit1to4: 173550, limit5to8: 229100, county: 'Pierce', state: 'WA', isHighCost: true },
-  'CLARK': { limit1to4: 135500, limit5to8: 178850, county: 'Clark', state: 'WA', isHighCost: true }
+  'KING': { limit1to4: 189500, limit5to8: 250150, county: 'King', state: 'WA', isHighCost: true },
+  'SNOHOMISH': { limit1to4: 189500, limit5to8: 250150, county: 'Snohomish', state: 'WA', isHighCost: true },
+  'PIERCE': { limit1to4: 189500, limit5to8: 250150, county: 'Pierce', state: 'WA', isHighCost: true },
+  'CLARK': { limit1to4: 147950, limit5to8: 195300, county: 'Clark', state: 'WA', isHighCost: true }
 };
 
 export function getUsdaIncomeLimitsForCounty(countyName, state = 'OR') {
@@ -56,8 +55,8 @@ export function getUsdaIncomeLimitsForCounty(countyName, state = 'OR') {
   }
   // Baseline fallback
   return {
-    limit1to4: 112450,
-    limit5to8: 148450,
+    limit1to4: 122800,
+    limit5to8: 162100,
     county: countyName || 'General',
     state: state || 'OR',
     isHighCost: false

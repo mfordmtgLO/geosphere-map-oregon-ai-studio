@@ -2295,20 +2295,21 @@ function idahoMrbTaxExemptListingPasses(listing) {
 const USDA_RD_OVERRIDE_STORAGE_KEY = 'geosphere_usda_income_overrides_v1';
 
 const USDA_RD_INCOME_LIMITS = {
-    // Oregon
-    'MULTNOMAH': { '1-4': 135500, '5-8': 178850 },
-    'WASHINGTON': { '1-4': 135500, '5-8': 178850 },
-    'CLACKAMAS': { '1-4': 135500, '5-8': 178850 },
-    'YAMHILL': { '1-4': 135500, '5-8': 178850 },
-    'COLUMBIA': { '1-4': 135500, '5-8': 178850 },
-    'BENTON': { '1-4': 125150, '5-8': 165200 },
-    'DESCHUTES': { '1-4': 120550, '5-8': 159150 },
-    'HOOD RIVER': { '1-4': 121500, '5-8': 160400 },
+    // Oregon (Effective 10-01-2026)
+    'BAKER': { '1-4': 122800, '5-8': 162100 },
+    'MULTNOMAH': { '1-4': 147950, '5-8': 195300 },
+    'WASHINGTON': { '1-4': 147950, '5-8': 195300 },
+    'CLACKAMAS': { '1-4': 147950, '5-8': 195300 },
+    'YAMHILL': { '1-4': 147950, '5-8': 195300 },
+    'COLUMBIA': { '1-4': 147950, '5-8': 195300 },
+    'BENTON': { '1-4': 136650, '5-8': 180400 },
+    'DESCHUTES': { '1-4': 131600, '5-8': 173700 },
+    'HOOD RIVER': { '1-4': 132650, '5-8': 175100 },
     // Washington
-    'KING': { '1-4': 173550, '5-8': 229100 },
-    'SNOHOMISH': { '1-4': 173550, '5-8': 229100 },
-    'PIERCE': { '1-4': 173550, '5-8': 229100 },
-    'CLARK': { '1-4': 135500, '5-8': 178850 }
+    'KING': { '1-4': 189500, '5-8': 250150 },
+    'SNOHOMISH': { '1-4': 189500, '5-8': 250150 },
+    'PIERCE': { '1-4': 189500, '5-8': 250150 },
+    'CLARK': { '1-4': 147950, '5-8': 195300 }
 };
 
 function getUsdaOverrides() {
@@ -2325,7 +2326,7 @@ function getUsdaCountyOfficialLimits(countyName) {
     if (USDA_RD_INCOME_LIMITS[c]) {
         return { official1to4: USDA_RD_INCOME_LIMITS[c]['1-4'], official5to8: USDA_RD_INCOME_LIMITS[c]['5-8'] };
     }
-    return { official1to4: 112450, official5to8: 148450 };
+    return { official1to4: 122800, official5to8: 162100 };
 }
 
 function getEffectiveUsdaCountyLimits(countyName) {
